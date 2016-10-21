@@ -13,5 +13,5 @@ task :clean do
 end
 
 task :run do
-  sh "build/src/main"
+  sh "build/raytracer test_scene.txt"
 end

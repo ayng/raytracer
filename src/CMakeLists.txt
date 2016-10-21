@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(APPLICATION_SOURCE
+add_executable(raytracer main.cpp)
+set(EXECUTABLE_OUTPUT_PATH ..)
 
-  main.cpp
-)
-add_executable(main ${APPLICATION_SOURCE})
+add_library(rt Scene.cpp)
+target_link_libraries(raytracer rt)
