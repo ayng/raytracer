@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  // Read file into string
+  // Read file contents into string.
   std::ifstream in(argv[1]);
   in.seekg(0, std::ios::end);
   int length = in.tellg();
@@ -20,8 +20,7 @@ int main(int argc, char **argv) {
   sceneDescription.resize(length);
   in.seekg(0, std::ios::beg);
   in.read(&sceneDescription[0], length);
-  
-  // Construct the scene from its description
+
+  // Construct the scene from its description.
   Scene scene(sceneDescription);
 }
-
