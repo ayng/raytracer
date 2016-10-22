@@ -22,14 +22,8 @@ Vector3::Vector3 (const Vector3& orig) {
   z = orig.z;
 }
 
-void Vector3::copy (const Vector3& orig) {
-  x = orig.x;
-  y = orig.y;
-  z = orig.z;
-}
-
 Vector3 Vector3::operator + (const Vector3& rhs) const {
-  Vector3 res(*this); 
+  Vector3 res(*this);
   res.x += rhs.x;
   res.y += rhs.y;
   res.z += rhs.z;
@@ -37,7 +31,7 @@ Vector3 Vector3::operator + (const Vector3& rhs) const {
 }
 
 Vector3 Vector3::operator - (const Vector3& rhs) const {
-  Vector3 res(*this); 
+  Vector3 res(*this);
   res.x -= rhs.x;
   res.y -= rhs.y;
   res.z -= rhs.z;
@@ -45,7 +39,7 @@ Vector3 Vector3::operator - (const Vector3& rhs) const {
 }
 
 Vector3 Vector3::operator * (const double rhs) const {
-  Vector3 res(*this); 
+  Vector3 res(*this);
   res.x *= rhs;
   res.y *= rhs;
   res.z *= rhs;
@@ -79,7 +73,7 @@ Vector3 Vector3::normalized() const {
 }
 
 void Vector3::dump() {
-  printf("<%.2f, %.2f, %.2f>\n", x, y, z);
+  printf("<%.3f, %.3f, %.3f>\n", x, y, z);
 }
 
 Vector3 operator * (const double lhs, const Vector3& rhs) {
@@ -104,14 +98,14 @@ Vector2::Vector2 (const Vector2& orig) {
 }
 
 Vector2 Vector2::operator + (const Vector2& rhs) const {
-  Vector2 res(*this); 
+  Vector2 res(*this);
   res.x += rhs.x;
   res.y += rhs.y;
   return res;
 }
 
 Vector2 Vector2::operator - (const Vector2& rhs) const {
-  Vector2 res(*this); 
+  Vector2 res(*this);
   res.x -= rhs.x;
   res.y -= rhs.y;
   return res;

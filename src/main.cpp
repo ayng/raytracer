@@ -4,6 +4,8 @@
 #include <string>
 #include <cstdio>
 
+#include <pngwriter.h>
+#include "Color.h"
 #include "Scene.h"
 
 int main(int argc, char **argv) {
@@ -23,4 +25,13 @@ int main(int argc, char **argv) {
 
   // Construct the scene from its description.
   Scene scene(sceneDescription);
+  scene.simulate();
+
+  pngwriter png(100, 100, 0, "output.png");
+  for (int i = 0; i < 100; i++)
+    png.plot(10, i, 1.0, 1.0, 1.0);
+  png.plot(40, 50, 0.0, 0.0, 1.0);
+  png.plot(50, 50, 1.0, 0.0, 0.0);
+  png.plot(60, 50, 0.0, 1.0, 0.0);
+  png.close();
 }

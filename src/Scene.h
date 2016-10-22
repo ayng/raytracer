@@ -16,11 +16,12 @@ class Scene {
     std::vector<DirectionalLight> directionalLights;
     std::vector<AmbientLight> ambientLights;
     Camera camera;
-    
+
     Scene ();
     Scene (std::string s);
 
-    void parseLine(std::string line);
+    void parseLine (std::string line);
+    void simulate ();
 };
 
 #endif

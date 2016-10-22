@@ -7,7 +7,6 @@ class Vector3 {
     Vector3 ();
     Vector3 (double _x, double _y, double _z);
     Vector3 (const Vector3& orig);
-    void copy (const Vector3& orig);
     Vector3 operator + (const Vector3& rhs) const;
     Vector3 operator - (const Vector3& rhs) const;
     Vector3 operator * (const double rhs) const;
