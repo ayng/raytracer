@@ -4,4 +4,7 @@ add_executable(raytracer main.cpp)
 set(EXECUTABLE_OUTPUT_PATH ..)
 
 add_library(rt Scene.cpp Vector.cpp Camera.cpp Sphere.cpp)
-target_link_libraries(raytracer rt)
+target_link_libraries(raytracer
+  rt
+  pngwriter
+)
