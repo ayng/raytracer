@@ -4,6 +4,7 @@
 #include <map>
 #include <cmath>
 
+#include <pngwriter.h>
 #include "Color.h"
 #include "Scene.h"
 
@@ -48,7 +49,7 @@ void Scene::parseLine (std::string line) {
 }
 
 void Scene::simulate () {
-  const int resolution = 10;
+  const int resolution = 100;
   // Determine pixel location from the image plane.
   Vector3 imagePlaneY = camera.tl - camera.bl;
   Vector3 imagePlaneX = camera.br - camera.bl;
@@ -58,6 +59,9 @@ void Scene::simulate () {
   int width = (int) (resolution * imagePlaneW);
   Vector3 unitY = imagePlaneY.normalized();
   Vector3 unitX = imagePlaneX.normalized();
+
+  // Initialize frame buffer.
+  Color frame[width][height];
 
   int hitCount = 0;
   int total = 0;
@@ -74,12 +78,25 @@ void Scene::simulate () {
         + unitY * (0.5 / resolution)) - camera.e;
       for (Sphere s : spheres) {
         Vector3 p = intersect(camera.e, direction, s);
-        if (p.isDefined()) hitCount++;
+        if (p.isDefined()) {
+          frame[x][y] = Color(1, 0, 0);
+          hitCount++;
+        }
       }
       total++;
     }
   }
   std::cout << "out of " << total << " rays traced, " << hitCount << " hit." << std::endl;
+
+  // Save frame buffer to an image.
+  pngwriter png(width, height, 0, "output.png");
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      Color c = frame[x][y];
+      png.plot(x, y, c.r, c.g, c.b);
+    }
+  }
+  png.close();
 }
 
 Vector3 Scene::intersect (const Vector3 start, const Vector3 direction, const Sphere s) {

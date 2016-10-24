@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   Scene scene(sceneDescription);
   scene.simulate();
 
-  pngwriter png(100, 100, 0, "output.png");
+  pngwriter png(100, 100, 0, "test.png");
   for (int i = 0; i < 100; i++)
     png.plot(10, i, 1.0, 1.0, 1.0);
   png.plot(40, 50, 0.0, 0.0, 1.0);
