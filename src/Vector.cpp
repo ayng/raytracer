@@ -50,6 +50,10 @@ bool Vector3::operator == (const Vector3& rhs) const {
   return x == rhs.x && y == rhs.y && z == rhs.z;
 }
 
+bool Vector3::isDefined () const {
+  return !(isnan(x) || isnan(y) || isnan(z));
+}
+
 double Vector3::dot(const Vector3& rhs) const {
   return x * rhs.x + y * rhs.y + z * rhs.z;
 }
@@ -72,7 +76,7 @@ Vector3 Vector3::normalized() const {
   return res;
 }
 
-void Vector3::dump() {
+void Vector3::dump() const {
   printf("<%.3f, %.3f, %.3f>\n", x, y, z);
 }
 

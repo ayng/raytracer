@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <map>
+#include <cmath>
 
 #include "Color.h"
 #include "Scene.h"
@@ -47,7 +48,7 @@ void Scene::parseLine (std::string line) {
 }
 
 void Scene::simulate () {
-  const int resolution = 100;
+  const int resolution = 10;
   // Determine pixel location from the image plane.
   Vector3 imagePlaneY = camera.tl - camera.bl;
   Vector3 imagePlaneX = camera.br - camera.bl;
@@ -57,6 +58,9 @@ void Scene::simulate () {
   int width = (int) (resolution * imagePlaneW);
   Vector3 unitY = imagePlaneY.normalized();
   Vector3 unitX = imagePlaneX.normalized();
+
+  int hitCount = 0;
+  int total = 0;
   // Find rays from the pixel locations.
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
@@ -65,11 +69,53 @@ void Scene::simulate () {
         + unitY * ((double) y / resolution)
         + unitX * ((double) x / resolution);
       // Point ray from camera eye to center of pixel.
-      Vector3 direction = (
-        world
+      Vector3 direction = (world
         + unitX * (0.5 / resolution)
-        + unitY * (0.5 / resolution)
-      ) - camera.e;
+        + unitY * (0.5 / resolution)) - camera.e;
+      for (Sphere s : spheres) {
+        Vector3 p = intersect(camera.e, direction, s);
+        if (p.isDefined()) hitCount++;
+      }
+      total++;
     }
   }
+  std::cout << "out of " << total << " rays traced, " << hitCount << " hit." << std::endl;
+}
+
+Vector3 Scene::intersect (const Vector3 start, const Vector3 direction, const Sphere s) {
+  // Let R(t) := A + tD, C := sphere center, r := sphere radius, X := A - C
+  // 0 = | A + tD - C |^2 - r^2
+  // 0 = | X + tD |^2 - r^2
+  // 0 = (X_1 + tD_1)^2 + (X_2 + tD_2)^2 + (X_3 + tD_3)^2 - r^2
+  // 0 = X_1^2 + 2tX_1D_1 + t^2D_1^2 + X_2^2 + 2tX_2D_2 + t^2D_2^2 + ... - r^2 = 0
+  // 0 = |X|^2 - r^2 + 2t(X.D) + t^2|D|^2
+
+  // Calculate quadratic equation coefficients.
+  Vector3 x = start - s.center;
+  double a = x.dot(x) - s.radius*s.radius;
+  double b = 2 * x.dot(direction);
+  double c = direction.dot(direction);
+
+  // Calculate discriminant to determine number of solutions.
+  double discriminant = b*b - 4*a*c;
+  // If there are no real solutions, we just return undefined.
+  if (discriminant < 0) return nanVector;
+
+  // Plugging t back into R(t), we find the solutions.
+  double tPlus = (-b + sqrt(discriminant)) / (2*a);
+  double tMinus = (-b - sqrt(discriminant)) / (2*a);
+  Vector3 solnPlus = start + tPlus * direction;
+  Vector3 solnMinus = start + tMinus * direction;
+
+  // We ensure the intersection is in front of the ray by checking that t > 0.
+  if (tPlus <= 0 && tMinus <= 0) return nanVector;
+  if (tPlus <= 0 && tMinus > 0) return solnMinus;
+  if (tPlus > 0 && tMinus <= 0) return solnPlus;
+
+  // The only other possibility is that both solutions have positive t-values.
+  // We choose the solution that is closer to the ray's start point.
+  double distancePlus = (solnPlus - start).magnitude();
+  double distanceMinus = (solnMinus - start).magnitude();
+  if (distancePlus < distanceMinus) return solnPlus;
+  else return solnMinus;
 }

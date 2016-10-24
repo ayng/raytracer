@@ -22,6 +22,7 @@ class Scene {
 
     void parseLine (std::string line);
     void simulate ();
+    Vector3 intersect (const Vector3 start, const Vector3 direction, const Sphere s);
 };
 
 #endif
