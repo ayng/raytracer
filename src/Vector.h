@@ -23,7 +23,7 @@ class Vector3 {
 
 Vector3 operator * (const double lhs, const Vector3& rhs);
 
-const Vector3 nanVector (nan(""), nan(""), nan(""));
+const Vector3 NAN_VECTOR (nan(""), nan(""), nan(""));
 
 class Vector2 {
   public:

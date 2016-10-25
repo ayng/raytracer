@@ -77,9 +77,9 @@ void Scene::simulate () {
         + unitX * (0.5 / resolution)
         + unitY * (0.5 / resolution)) - camera.e;
       for (Sphere s : spheres) {
-        Vector3 p = intersect(camera.e, direction, s);
-        if (p.isDefined()) {
-          frame[x][y] = Color(1, 0, 0);
+        SurfacePoint sp = intersect(camera.e, direction, s);
+        if (sp.point.isDefined()) {
+          frame[x][y] = Color(1,0,0);
           hitCount++;
         }
       }
@@ -99,7 +99,8 @@ void Scene::simulate () {
   png.close();
 }
 
-Vector3 Scene::intersect (const Vector3 start, const Vector3 direction, const Sphere s) {
+SurfacePoint Scene::intersect (const Vector3 start, const Vector3 direction,
+  const Sphere s) {
   // Let R(t) := A + tD, C := sphere center, r := sphere radius, X := A - C
   // 0 = | A + tD - C |^2 - r^2
   // 0 = | X + tD |^2 - r^2
@@ -116,7 +117,7 @@ Vector3 Scene::intersect (const Vector3 start, const Vector3 direction, const Sp
   // Calculate discriminant to determine number of solutions.
   double discriminant = b*b - 4*a*c;
   // If there are no real solutions, we just return undefined.
-  if (discriminant < 0) return nanVector;
+  if (discriminant < 0) return {NAN_VECTOR, NAN_VECTOR};
 
   // Plugging t back into R(t), we find the solutions.
   double tPlus = (-b + sqrt(discriminant)) / (2*a);
@@ -125,14 +126,16 @@ Vector3 Scene::intersect (const Vector3 start, const Vector3 direction, const Sp
   Vector3 solnMinus = start + tMinus * direction;
 
   // We ensure the intersection is in front of the ray by checking that t > 0.
-  if (tPlus <= 0 && tMinus <= 0) return nanVector;
-  if (tPlus <= 0 && tMinus > 0) return solnMinus;
-  if (tPlus > 0 && tMinus <= 0) return solnPlus;
+  if (tPlus <= 0 && tMinus <= 0) return {NAN_VECTOR, NAN_VECTOR};
+  if (tPlus <= 0 && tMinus > 0) return {solnMinus, (solnMinus - s.center).normalized()};
+  if (tPlus > 0 && tMinus <= 0) return {solnPlus, (solnPlus - s.center).normalized()};
 
   // The only other possibility is that both solutions have positive t-values.
   // We choose the solution that is closer to the ray's start point.
   double distancePlus = (solnPlus - start).magnitude();
   double distanceMinus = (solnMinus - start).magnitude();
-  if (distancePlus < distanceMinus) return solnPlus;
-  else return solnMinus;
+  if (distancePlus < distanceMinus)
+    return {solnPlus, (solnPlus - s.center).normalized()};
+  else
+    return {solnMinus, (solnMinus - s.center).normalized()};
 }

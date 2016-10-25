@@ -8,6 +8,11 @@
 #include "Light.h"
 #include "Camera.h"
 
+struct SurfacePoint {
+  Vector3 point;
+  Vector3 normal;
+};
+
 class Scene {
   public:
     std::vector<Sphere> spheres;
@@ -22,7 +27,7 @@ class Scene {
 
     void parseLine (std::string line);
     void simulate ();
-    Vector3 intersect (const Vector3 start, const Vector3 direction, const Sphere s);
+    SurfacePoint intersect (const Vector3 start, const Vector3 direction, const Sphere s);
 };
 
 #endif
