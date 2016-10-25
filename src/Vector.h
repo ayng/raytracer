@@ -36,4 +36,16 @@ class Vector2 {
     double magnitude () const;
 };
 
+class Vector4 {
+  public:
+    double x, y, z, w;
+    Vector4 ();
+    Vector4 (double _x, double _y, double _z, double _w);
+    Vector4 (const Vector3& v, double _w);
+    Vector4 (const Vector4& orig);
+    double dot (const Vector4& rhs) const;
+    Vector3 toVector3 () const;
+    void dump() const;
+};
+
 #endif

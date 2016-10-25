@@ -39,6 +39,10 @@ void Scene::parseLine (std::string line) {
     // Construct Sphere object in this stack frame, then copy it into vector.
     this->spheres.push_back(Sphere(cx, cy, cz, r));
   }
+  else if (prefix == "xft") {
+    float x, y, z;
+    iss >> x >> y >> z;
+  }
   else {
     std::cerr << "Warning: skipping unrecognized command \""
               << prefix
@@ -76,9 +80,10 @@ void Scene::simulate () {
       Vector3 direction = (world
         + unitX * (0.5 / resolution)
         + unitY * (0.5 / resolution)) - camera.e;
+      Ray cameraRay = {camera.e, direction};
       for (Sphere s : spheres) {
-        SurfacePoint sp = intersect(camera.e, direction, s);
-        if (sp.point.isDefined()) {
+        Ray surfacePoint = intersect(cameraRay, s);
+        if (surfacePoint.point.isDefined()) {
           frame[x][y] = Color(1,0,0);
           hitCount++;
         }
@@ -99,8 +104,7 @@ void Scene::simulate () {
   png.close();
 }
 
-SurfacePoint Scene::intersect (const Vector3 start, const Vector3 direction,
-  const Sphere s) {
+Ray Scene::intersect (const Ray ray, const Sphere s) {
   // Let R(t) := A + tD, C := sphere center, r := sphere radius, X := A - C
   // 0 = | A + tD - C |^2 - r^2
   // 0 = | X + tD |^2 - r^2
@@ -109,10 +113,10 @@ SurfacePoint Scene::intersect (const Vector3 start, const Vector3 direction,
   // 0 = |X|^2 - r^2 + 2t(X.D) + t^2|D|^2
 
   // Calculate quadratic equation coefficients.
-  Vector3 x = start - s.center;
+  Vector3 x = ray.point - s.center;
   double a = x.dot(x) - s.radius*s.radius;
-  double b = 2 * x.dot(direction);
-  double c = direction.dot(direction);
+  double b = 2 * x.dot(ray.dir);
+  double c = ray.dir.dot(ray.dir);
 
   // Calculate discriminant to determine number of solutions.
   double discriminant = b*b - 4*a*c;
@@ -122,8 +126,8 @@ SurfacePoint Scene::intersect (const Vector3 start, const Vector3 direction,
   // Plugging t back into R(t), we find the solutions.
   double tPlus = (-b + sqrt(discriminant)) / (2*a);
   double tMinus = (-b - sqrt(discriminant)) / (2*a);
-  Vector3 solnPlus = start + tPlus * direction;
-  Vector3 solnMinus = start + tMinus * direction;
+  Vector3 solnPlus = ray.point + tPlus * ray.dir;
+  Vector3 solnMinus = ray.point + tMinus * ray.dir;
 
   // We ensure the intersection is in front of the ray by checking that t > 0.
   if (tPlus <= 0 && tMinus <= 0) return {NAN_VECTOR, NAN_VECTOR};
@@ -132,8 +136,8 @@ SurfacePoint Scene::intersect (const Vector3 start, const Vector3 direction,
 
   // The only other possibility is that both solutions have positive t-values.
   // We choose the solution that is closer to the ray's start point.
-  double distancePlus = (solnPlus - start).magnitude();
-  double distanceMinus = (solnMinus - start).magnitude();
+  double distancePlus = (solnPlus - ray.point).magnitude();
+  double distanceMinus = (solnMinus - ray.point).magnitude();
   if (distancePlus < distanceMinus)
     return {solnPlus, (solnPlus - s.center).normalized()};
   else
