@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "Matrix.h"
 #include "Ray.h"
+#include "Material.h"
 
 class Scene {
   public:
@@ -27,7 +28,14 @@ class Scene {
 
     void parseLine (std::string line);
     void simulate ();
-    Ray intersect (const Ray ray, const Sphere s);
+    Ray intersect (Ray ray, Sphere s);
+
+    /* Shading */
+    Color phong(const Vector3& p, const Vector3& n, const Vector3& v, const Material& material);
+    Color ambient (const Color& ka);
+    Color diffuse(const Vector3& p, const Vector3& n, const Color& kd);
+    Color specular(const Vector3& p, const Vector3& n, const Vector3& v, const Color& ks, double sp);
+    double specularIncidence(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, double sp);
 };
 
 #endif
