@@ -14,6 +14,7 @@ class Matrix4 {
     Matrix4 dot (const Matrix4& rhs) const;
     Vector4 dot (const Vector4& rhs) const;
     Ray transform (const Ray& rhs) const;
+    Matrix4 transposed () const;
     void dump () const;
 };
 

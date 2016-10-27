@@ -77,7 +77,7 @@ void Scene::parseLine(std::string line) {
 }
 
 void Scene::simulate() {
-  const int resolution = 400;
+  const int resolution = 300;
   // Determine pixel location from the image plane.
   Vector3 imagePlaneY = camera.tl - camera.bl;
   Vector3 imagePlaneX = camera.br - camera.bl;
@@ -107,16 +107,17 @@ void Scene::simulate() {
       Ray cameraRay = {camera.e, direction};
 
       Color ka(.2, .2, .2);
-      Color kd(.8, .8, .1);
-      Color ks(.5, .5, .1);
+      Color kd(.8, .1, .1);
+      Color ks(.8, .1, .1);
       double sp = 100;
       Material material = {ka, kd, ks, sp};
       for (Sphere sph : spheres) {
         Ray surfaceNormal = intersect(cameraRay, sph);
         if (surfaceNormal.point.isDefined()) {
           Vector3 point = surfaceNormal.point;
-          Vector3 normalDir = surfaceNormal.dir;
+          Vector3 normalDir = surfaceNormal.dir.normalized();
           Vector3 viewDir = (camera.e - point).normalized();
+          //frame[y*width+x] = phong(point, normalDir, viewDir, material);
           frame[y*width+x] = phong(point, normalDir, viewDir, material);
           hitCount++;
         }
@@ -148,6 +149,7 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
   // 0 = |X|^2 - r^2 + 2t(X.D) + t^2|D|^2
   // Transform ray to the coordinate space of the sphere.
   Ray xfRay = sph.in.transform(ray);
+  xfRay.dir = xfRay.dir.normalized();
 
   // Calculate quadratic equation coefficients.
   Vector3 x = xfRay.point - sph.center;
@@ -185,8 +187,10 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
       surfaceNormal = {solnMinus, (solnMinus - sph.center)};
   }
   Ray result = sph.out.transform(surfaceNormal);
-  result.dir = result.dir.normalized();
-  return result;
+  Vector3 worldPoint = sph.out.dot(Vector4(surfaceNormal.point, 1)).toVector3();
+  Vector3 worldNormal = sph.in.transposed().dot(Vector4(surfaceNormal.dir, 0)).toVector3();
+  Ray worldSurfaceNormal = {worldPoint, worldNormal};
+  return worldSurfaceNormal;
 }
 
 Color Scene::phong(const Vector3& p, const Vector3& n, const Vector3& v, const Material& material) {

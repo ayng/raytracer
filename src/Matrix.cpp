@@ -45,8 +45,18 @@ Vector4 Matrix4::dot (const Vector4& rhs) const {
 
 Ray Matrix4::transform (const Ray& rhs) const {
   Vector3 xfPoint = dot(Vector4(rhs.point, 1)).toVector3();
-  Vector3 xfDir = dot(Vector4(rhs.dir, 0)).toVector3();
+  Vector3 xfDir = dot(Vector4(rhs.point+rhs.dir, 1)).toVector3() - xfPoint;
   return {xfPoint, xfDir};
+}
+
+Matrix4 Matrix4::transposed () const {
+  Matrix4 res;
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      res.v[i*4+j] = v[j*4+i];
+    }
+  }
+  return res;
 }
 
 void Matrix4::dump () const {
