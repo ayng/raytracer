@@ -30,7 +30,7 @@ class Scene {
     Scene ();
 
     void parseLine (std::string line);
-    void simulate ();
+    void render ();
     Ray intersect (Ray ray, Sphere s);
 
     /* Shading */

@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include <cmath>
+#include <cstdio>
 
 #include "Color.h"
 #include "Scene.h"
@@ -72,7 +73,7 @@ void Scene::parseLine(std::string line) {
   }
 }
 
-void Scene::simulate() {
+void Scene::render() {
   // Determine pixel location from the image plane.
   Vector3 imagePlaneY = camera.tl - camera.bl;
   Vector3 imagePlaneX = camera.br - camera.bl;
@@ -125,7 +126,9 @@ void Scene::simulate() {
       total++;
     }
   }
-  std::cout << "out of " << total << " rays traced, " << hitCount << " hit." << std::endl;
+  printf("[RENDER] %d/%d rays hit.\n", hitCount, total);
+  printf("[RENDER] %.2f%% hit rate.\n", (double) hitCount / total * 100);
+
 
   // Save frame buffer to an image.
   pngwriter png(width, height, 0, "output.png");

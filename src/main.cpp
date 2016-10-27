@@ -18,14 +18,13 @@ double timestamp()
 
 int main(int argc, char **argv) {
   Scene scene;
-
   // Read scene description from stdin.
   for (std::string line; std::getline(std::cin, line);) {
     scene.parseLine(line);
   }
-
+  // Time the render.
   double start = timestamp();
-  scene.simulate();
+  scene.render();
   printf("Render time: %.3f seconds\n", timestamp() - start);
 
   pngwriter png(100, 100, 0, "test.png");
