@@ -28,7 +28,6 @@ class Scene {
     Material material;
 
     Scene ();
-    Scene (std::string s);
 
     void parseLine (std::string line);
     void simulate ();

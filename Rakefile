@@ -13,7 +13,7 @@ task :clean do
 end
 
 task :run do
-  sh "build/raytracer test_scene.txt"
+  sh "build/raytracer < test_scene.txt"
 end
 task :test do
   sh "build/rt_test"

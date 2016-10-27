@@ -22,16 +22,6 @@ Scene::Scene() {
   xfOut = scale(1, 1, 1);
   material = {Color(.5, .5, .5), Color(0, 0, 0), Color(0, 0, 0), 1, Color(0, 0, 0)};
 }
-Scene::Scene(std::string s) {
-  xfIn = scale(1, 1, 1);
-  xfOut = scale(1, 1, 1);
-  material = {Color(.5, .5, .5), Color(0, 0, 0), Color(0, 0, 0), 1, Color(0, 0, 0)};
-  std::stringstream ss(s);
-  std::string line;
-  while (std::getline(ss, line, '\n')) {
-    this->parseLine(line);
-  }
-}
 
 void Scene::parseLine(std::string line) {
   if (line.empty()) return;
