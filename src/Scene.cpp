@@ -20,10 +20,12 @@ const std::map<std::string, int> argnum = {
 Scene::Scene() {
   xfIn = scale(1, 1, 1);
   xfOut = scale(1, 1, 1);
+  material = {Color(.5, .5, .5), Color(0, 0, 0), Color(0, 0, 0), 1, Color(0, 0, 0)};
 }
 Scene::Scene(std::string s) {
   xfIn = scale(1, 1, 1);
   xfOut = scale(1, 1, 1);
+  material = {Color(.5, .5, .5), Color(0, 0, 0), Color(0, 0, 0), 1, Color(0, 0, 0)};
   std::stringstream ss(s);
   std::string line;
   while (std::getline(ss, line, '\n')) {
@@ -32,6 +34,7 @@ Scene::Scene(std::string s) {
 }
 
 void Scene::parseLine(std::string line) {
+  if (line.empty()) return;
   std::istringstream iss(line);
   std::string prefix;
   iss >> prefix;
@@ -43,8 +46,7 @@ void Scene::parseLine(std::string line) {
   } else if (prefix == "sph") {  // Sphere
     double cx, cy, cz, r;
     iss >> cx >> cy >> cz >> r;
-    // Construct Sphere object in this stack frame, then copy it into vector.
-    this->spheres.push_back(Sphere(cx, cy, cz, r, xfIn, xfOut));
+    this->spheres.push_back(Sphere(cx, cy, cz, r, material, xfIn, xfOut));
   } else if (prefix == "xfz") {
     xfIn = scale(1, 1, 1);
     xfOut = scale(1, 1, 1);
@@ -67,6 +69,10 @@ void Scene::parseLine(std::string line) {
     double x, y, z, r, g, b, falloff;
     iss >> x >> y >> z >> r >> g >> b >> falloff;
     pointLights.push_back(PointLight(Vector3(x, y, z), Color(r, g, b)));
+  } else if (prefix == "mat") {
+    double kar, kag, kab, kdr, kdg, kdb, ksr, ksg, ksb, ksp, krr, krg, krb;
+    iss >> kar >> kag >> kab >> kdr >> kdg >> kdb >> ksr >> ksg >> ksb >> ksp >> krr >> krg >> krb;
+    material = {Color(kar, kag, kab), Color(kdr, kdg, kdb), Color(ksr, ksg, ksb), ksp, Color(krr, krg, krb)};
   } else {
     std::cerr << "Warning: skipping unrecognized command \""
               << prefix
@@ -77,7 +83,6 @@ void Scene::parseLine(std::string line) {
 }
 
 void Scene::simulate() {
-  const int resolution = 300;
   // Determine pixel location from the image plane.
   Vector3 imagePlaneY = camera.tl - camera.bl;
   Vector3 imagePlaneX = camera.br - camera.bl;
@@ -106,21 +111,26 @@ void Scene::simulate() {
         + unitY * (0.5 / resolution)) - camera.e;
       Ray cameraRay = {camera.e, direction};
 
-      Color ka(.2, .2, .2);
-      Color kd(.8, .1, .1);
-      Color ks(.8, .1, .1);
-      double sp = 100;
-      Material material = {ka, kd, ks, sp};
+      double nearestDistance = INFINITY;
+      Ray nearestIntersection = {NAN_VECTOR, NAN_VECTOR};
+      Material nearestMaterial;
       for (Sphere sph : spheres) {
-        Ray surfaceNormal = intersect(cameraRay, sph);
-        if (surfaceNormal.point.isDefined()) {
-          Vector3 point = surfaceNormal.point;
-          Vector3 normalDir = surfaceNormal.dir.normalized();
-          Vector3 viewDir = (camera.e - point).normalized();
-          //frame[y*width+x] = phong(point, normalDir, viewDir, material);
-          frame[y*width+x] = phong(point, normalDir, viewDir, material);
-          hitCount++;
+        Ray intersection = intersect(cameraRay, sph);
+        if (intersection.point.isDefined()) {
+          double distance = (intersection.point - camera.e).magnitude();
+          if (distance < nearestDistance) {
+            nearestIntersection = intersection;
+            nearestDistance = distance;
+            nearestMaterial = sph.material;
+            hitCount++;
+          }
         }
+      }
+      if (nearestIntersection.point.isDefined()) {
+        Vector3 point = nearestIntersection.point;
+        Vector3 normalDir = nearestIntersection.dir.normalized();
+        Vector3 viewDir = (camera.e - point).normalized();
+        frame[y*width+x] = phong(point, normalDir, viewDir, nearestMaterial);
       }
       total++;
     }

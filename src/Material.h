@@ -6,6 +6,7 @@
 struct Material {
   Color ka, kd, ks;
   double sp;
+  Color kr;
 };
 
 #endif

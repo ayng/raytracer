@@ -13,6 +13,8 @@
 
 class Scene {
   public:
+    const int resolution = 240;
+
     std::vector<Sphere> spheres;
     std::vector<Triangle> triangles;
     std::vector<PointLight> pointLights;
@@ -22,6 +24,8 @@ class Scene {
 
     Matrix4 xfIn;
     Matrix4 xfOut;
+
+    Material material;
 
     Scene ();
     Scene (std::string s);
