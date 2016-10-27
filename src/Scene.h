@@ -8,11 +8,7 @@
 #include "Light.h"
 #include "Camera.h"
 #include "Matrix.h"
-
-struct Ray {
-  Vector3 point;
-  Vector3 dir;
-};
+#include "Ray.h"
 
 class Scene {
   public:
@@ -23,7 +19,8 @@ class Scene {
     std::vector<AmbientLight> ambientLights;
     Camera camera;
 
-    Matrix4 transform;
+    Matrix4 xfIn;
+    Matrix4 xfOut;
 
     Scene ();
     Scene (std::string s);

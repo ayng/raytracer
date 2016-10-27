@@ -6,6 +6,7 @@
 
 #include "Matrix.h"
 #include "Vector.h"
+#include "Ray.h"
 
 /* Matrix4 */
 
@@ -40,6 +41,12 @@ Vector4 Matrix4::dot (const Vector4& rhs) const {
   res.z = rhs.dot(Vector4(v[i*4+0], v[i*4+1], v[i*4+2], v[i*4+3])); i++;
   res.w = rhs.dot(Vector4(v[i*4+0], v[i*4+1], v[i*4+2], v[i*4+3]));
   return res;
+}
+
+Ray Matrix4::transform (const Ray& rhs) const {
+  Vector3 xfPoint = dot(Vector4(rhs.point, 1)).toVector3();
+  Vector3 xfDir = dot(Vector4(rhs.dir, 0)).toVector3();
+  return {xfPoint, xfDir};
 }
 
 void Matrix4::dump () const {
@@ -100,7 +107,8 @@ Matrix4 rotate(double x, double y, double z) {
     0, 0, 1, 0,
     0, 0, 0, 1
   });
-  double actualAngle = r.magnitude() / 180 * M_PI;
+
+  double actualAngle = rotateZ.dot(rotateX).dot(Vector4(r, 0)).x / 180 * M_PI;
   Matrix4 actualRotation({
     1, 0, 0, 0,
     0, std::cos(actualAngle), -std::sin(actualAngle), 0,

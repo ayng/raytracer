@@ -14,10 +14,12 @@ const std::map<std::string, int> argnum = {
 };
 
 Scene::Scene () {
-  transform = scale(1, 1, 1);
+  xfIn = scale(1, 1, 1);
+  xfOut = scale(1, 1, 1);
 }
 Scene::Scene (std::string s) {
-  transform = scale(1, 1, 1);
+  xfIn = scale(1, 1, 1);
+  xfOut = scale(1, 1, 1);
   std::stringstream ss(s);
   std::string line;
   while (std::getline(ss, line, '\n')) {
@@ -39,25 +41,29 @@ void Scene::parseLine (std::string line) {
     double cx, cy, cz, r;
     iss >> cx >> cy >> cz >> r;
     // Construct Sphere object in this stack frame, then copy it into vector.
-    this->spheres.push_back(Sphere(cx, cy, cz, r, transform));
+    this->spheres.push_back(Sphere(cx, cy, cz, r, xfIn, xfOut));
   }
   else if (prefix == "xfz") {
-    transform = scale(1, 1, 1);
+    xfIn = scale(1, 1, 1);
+    xfOut = scale(1, 1, 1);
   }
   else if (prefix == "xft") {
     double x, y, z;
     iss >> x >> y >> z;
-    transform = translate(-x, -y, -z).dot(transform);
+    xfIn = translate(-x, -y, -z).dot(xfIn);
+    xfOut = xfOut.dot(translate(x, y, z));
   }
   else if (prefix == "xfr") {
     double x, y, z;
     iss >> x >> y >> z;
-    transform = rotate(-x, -y, -z).dot(transform);
+    xfIn = rotate(-x, -y, -z).dot(xfIn);
+    xfOut = xfOut.dot(rotate(x, y, z));
   }
   else if (prefix == "xfs") {
     double x, y, z;
     iss >> x >> y >> z;
-    transform = scale(1/x, 1/y, 1/z).dot(transform);
+    xfIn = scale(1/x, 1/y, 1/z).dot(xfIn);
+    xfOut = xfOut.dot(scale(x, y, z));
   }
   else {
     std::cerr << "Warning: skipping unrecognized command \""
@@ -97,11 +103,15 @@ void Scene::simulate () {
         + unitX * (0.5 / resolution)
         + unitY * (0.5 / resolution)) - camera.e;
       Ray cameraRay = {camera.e, direction};
-      for (Sphere s : spheres) {
-        Ray surfacePoint = intersect(cameraRay, s);
+
+      for (Sphere sph : spheres) {
+        Ray surfacePoint = intersect(cameraRay, sph);
         if (surfacePoint.point.isDefined()) {
-          frame[x][y] = Color(1,0,0);
+          Color c(1,0,0);
+          frame[x][y] = c;
+          surfacePoint.dir.dump();
           hitCount++;
+
         }
       }
       total++;
@@ -128,9 +138,7 @@ Ray Scene::intersect (const Ray ray, const Sphere sph) {
   // 0 = X_1^2 + 2tX_1D_1 + t^2D_1^2 + X_2^2 + 2tX_2D_2 + t^2D_2^2 + ... - r^2 = 0
   // 0 = |X|^2 - r^2 + 2t(X.D) + t^2|D|^2
   // Transform ray to the coordinate space of the sphere.
-  Vector3 tPoint = sph.transform.dot(Vector4(ray.point, 1)).toVector3();
-  Vector3 tDir = sph.transform.dot(Vector4(ray.dir, 0)).toVector3();
-  Ray xfRay = {tPoint, tDir};
+  Ray xfRay = sph.in.transform(ray);
 
   // Calculate quadratic equation coefficients.
   Vector3 x = xfRay.point - sph.center;
@@ -150,16 +158,20 @@ Ray Scene::intersect (const Ray ray, const Sphere sph) {
   Vector3 solnMinus = xfRay.point + tMinus * xfRay.dir;
 
   // We ensure the intersection is in front of the ray by checking that t > 0.
-  if (tPlus <= 0 && tMinus <= 0) return {NAN_VECTOR, NAN_VECTOR};
-  if (tPlus <= 0 && tMinus > 0) return {solnMinus, (solnMinus - sph.center).normalized()};
-  if (tPlus > 0 && tMinus <= 0) return {solnPlus, (solnPlus - sph.center).normalized()};
+  Ray surfacePoint;
+  if (tPlus <= 0 && tMinus <= 0) surfacePoint = {NAN_VECTOR, NAN_VECTOR};
+  else if (tPlus <= 0 && tMinus > 0) surfacePoint = {solnMinus, (solnMinus - sph.center).normalized()};
+  else if (tPlus > 0 && tMinus <= 0) surfacePoint = {solnPlus, (solnPlus - sph.center).normalized()};
+  else {
+    // The only other possibility is that both solutions have positive t-values.
+    // We choose the solution that is closer to the ray's start point.
+    double distancePlus = (solnPlus - xfRay.point).magnitude();
+    double distanceMinus = (solnMinus - xfRay.point).magnitude();
+    if (distancePlus < distanceMinus)
+      surfacePoint = {solnPlus, (solnPlus - sph.center).normalized()};
+    else
+      surfacePoint = {solnMinus, (solnMinus - sph.center).normalized()};
+  }
+  return sph.out.transform(surfacePoint);
 
-  // The only other possibility is that both solutions have positive t-values.
-  // We choose the solution that is closer to the ray's start point.
-  double distancePlus = (solnPlus - xfRay.point).magnitude();
-  double distanceMinus = (solnMinus - xfRay.point).magnitude();
-  if (distancePlus < distanceMinus)
-    return {solnPlus, (solnPlus - sph.center).normalized()};
-  else
-    return {solnMinus, (solnMinus - sph.center).normalized()};
 }

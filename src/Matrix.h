@@ -3,6 +3,7 @@
 
 #include <initializer_list>
 #include "Vector.h"
+#include "Ray.h"
 
 class Matrix4 {
   public:
@@ -12,6 +13,7 @@ class Matrix4 {
     Matrix4 (std::initializer_list<double> list);
     Matrix4 dot (const Matrix4& rhs) const;
     Vector4 dot (const Vector4& rhs) const;
+    Ray transform (const Ray& rhs) const;
     void dump () const;
 };
 
