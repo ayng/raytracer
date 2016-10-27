@@ -77,7 +77,7 @@ void Scene::parseLine(std::string line) {
 }
 
 void Scene::simulate() {
-  const int resolution = 20;
+  const int resolution = 400;
   // Determine pixel location from the image plane.
   Vector3 imagePlaneY = camera.tl - camera.bl;
   Vector3 imagePlaneX = camera.br - camera.bl;
@@ -89,7 +89,7 @@ void Scene::simulate() {
   Vector3 unitX = imagePlaneX.normalized();
 
   // Initialize frame buffer.
-  Color frame[width][height];
+  Color *frame = new Color[width*height];
 
   int hitCount = 0;
   int total = 0;
@@ -107,20 +107,17 @@ void Scene::simulate() {
       Ray cameraRay = {camera.e, direction};
 
       Color ka(.2, .2, .2);
-      Color kd(.5, .5, .5);
-      Color ks(.3, .3, .3);
-      double sp = 10;
+      Color kd(.8, .8, .1);
+      Color ks(.5, .5, .1);
+      double sp = 100;
       Material material = {ka, kd, ks, sp};
       for (Sphere sph : spheres) {
         Ray surfaceNormal = intersect(cameraRay, sph);
         if (surfaceNormal.point.isDefined()) {
           Vector3 point = surfaceNormal.point;
           Vector3 normalDir = surfaceNormal.dir;
-          std::cout << "--" << std::endl;
-          point.dump();
-          normalDir.dump();
           Vector3 viewDir = (camera.e - point).normalized();
-          frame[x][y] = phong(point, normalDir, viewDir, material);
+          frame[y*width+x] = phong(point, normalDir, viewDir, material);
           hitCount++;
         }
       }
@@ -133,11 +130,13 @@ void Scene::simulate() {
   pngwriter png(width, height, 0, "output.png");
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      Color c = frame[x][y];
+      Color c = frame[y*width+x];
       png.plot(x, y, c.r, c.g, c.b);
     }
   }
   png.close();
+
+  delete [] frame;
 }
 
 Ray Scene::intersect(const Ray ray, const Sphere sph) {
@@ -152,9 +151,9 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
 
   // Calculate quadratic equation coefficients.
   Vector3 x = xfRay.point - sph.center;
-  double a = x.dot(x) - sph.radius*sph.radius;
+  double a = xfRay.dir.dot(xfRay.dir);
   double b = 2 * x.dot(xfRay.dir);
-  double c = xfRay.dir.dot(xfRay.dir);
+  double c = x.dot(x) - sph.radius*sph.radius;
 
   // Calculate discriminant to determine number of solutions.
   double discriminant = b*b - 4*a*c;
@@ -164,10 +163,6 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
   // Plugging t back into R(t), we find the solutions.
   double tPlus = (-b + std::sqrt(discriminant)) / (2*a);
   double tMinus = (-b - std::sqrt(discriminant)) / (2*a);
-  std::cout << "x";
-  x.dump();
-  std::cout << "t+:" << tPlus << std::endl;
-  std::cout << "t-:" << tMinus << std::endl;
   Vector3 solnPlus = xfRay.point + tPlus * xfRay.dir;
   Vector3 solnMinus = xfRay.point + tMinus * xfRay.dir;
 
@@ -189,15 +184,6 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
     else
       surfaceNormal = {solnMinus, (solnMinus - sph.center)};
   }
-  std::cout << "eye ray in global space." << std::endl;
-  ray.point.dump();
-  ray.dir.dump();
-  std::cout << "eye ray in sphere space." << std::endl;
-  xfRay.point.dump();
-  xfRay.dir.dump();
-  std::cout << "intersection in sphere space." << std::endl;
-  surfaceNormal.point.dump();
-  surfaceNormal.dir.dump();
   Ray result = sph.out.transform(surfaceNormal);
   result.dir = result.dir.normalized();
   return result;
