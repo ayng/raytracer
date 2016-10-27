@@ -3,10 +3,18 @@
 #include <iostream>
 #include <string>
 #include <cstdio>
+#include <sys/time.h>
 
 #include <pngwriter.h>
 #include "Color.h"
 #include "Scene.h"
+
+double timestamp()
+{
+  struct timeval tv;
+  gettimeofday (&tv, 0);
+  return tv.tv_sec + 1e-6*tv.tv_usec;
+}
 
 int main(int argc, char **argv) {
   if (argc < 2) {
@@ -25,7 +33,9 @@ int main(int argc, char **argv) {
 
   // Construct the scene from its description.
   Scene scene(sceneDescription);
+  double start = timestamp();
   scene.simulate();
+  printf("Render time: %.3f seconds\n", timestamp() - start);
 
   pngwriter png(100, 100, 0, "test.png");
   for (int i = 0; i < 100; i++)
