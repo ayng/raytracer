@@ -92,6 +92,8 @@ void Scene::render() {
   Vector3 unitY = imagePlaneY.normalized();
   Vector3 unitX = imagePlaneX.normalized();
 
+  printf("[RENDER] Writing %dx%d image.\n", width, height);
+
   // Initialize frame buffer.
   Color *frame = new Color[width*height];
 
@@ -211,9 +213,23 @@ Color Scene::phong(const Vector3& p, const Vector3& n, const Vector3& v, const M
     Color intensity = pl.intensity;
     Ray shadowRay = {p, lightDir};
     Vector3 l = lightDir.normalized();
-    // TODO do a inbetween check on the shadow ray
-    result = result + diffuse(p, n, l, material.kd, intensity)
-      + specular(p, n, v, l, material.ks, material.sp, intensity);
+    // Check if there are any intersections between this point and the light.
+    bool isShadowed = false;
+    for (Sphere sph : spheres) {
+      Ray intersection = intersect(shadowRay, sph);
+      if (intersection.point.isDefined()) {
+        double distanceToIntersection = (intersection.point - p).magnitude();
+        double distanceToLight = lightDir.magnitude();
+        // If the intersection lies between the light and the point, skip shading for this light.
+        // The second condition prevents self-shadowing.
+        if (distanceToIntersection < distanceToLight && distanceToIntersection > 1e-6) {
+          isShadowed = true;
+        }
+      }
+    }
+    if (!isShadowed)
+      result = result + diffuse(p, n, l, material.kd, intensity)
+        + specular(p, n, v, l, material.ks, material.sp, intensity);
   }
   for (DirectionalLight dl : directionalLights) {
   }

@@ -13,7 +13,7 @@
 
 class Scene {
   public:
-    const int resolution = 240;
+    const int resolution = 480;
 
     std::vector<Sphere> spheres;
     std::vector<Triangle> triangles;
