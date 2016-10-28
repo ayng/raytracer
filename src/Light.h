@@ -11,7 +11,9 @@ class PointLight {
 
     PointLight ();
     PointLight (Vector3 p, Color c);
+    Vector3 dirToLight (Vector3 p);
 };
+
 class DirectionalLight {
   public:
     Vector3 dir;
@@ -19,6 +21,7 @@ class DirectionalLight {
 
     DirectionalLight ();
     DirectionalLight (Vector3 d, Color c);
+    Vector3 dirToLight (Vector3 p);
 };
 
 class AmbientLight {};

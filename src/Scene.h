@@ -19,7 +19,6 @@ class Scene {
     std::vector<Triangle> triangles;
     std::vector<PointLight> pointLights;
     std::vector<DirectionalLight> directionalLights;
-    std::vector<AmbientLight> ambientLights;
     Camera camera;
 
     Matrix4 xfIn;
@@ -36,8 +35,8 @@ class Scene {
     /* Shading */
     Color phong(const Vector3& p, const Vector3& n, const Vector3& v, const Material& material);
     Color ambient (const Color& ka);
-    Color diffuse(const Vector3& p, const Vector3& n, const Color& kd);
-    Color specular(const Vector3& p, const Vector3& n, const Vector3& v, const Color& ks, double sp);
+    Color diffuse(const Vector3& p, const Vector3& n, const Vector3& l, const Color& kd, const Color& intensity);
+    Color specular(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, const Color& ks, double sp, const Color& intensity);
     double specularIncidence(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, double sp);
 };
 

@@ -62,8 +62,16 @@ void Scene::parseLine(std::string line) {
     pointLights.push_back(PointLight(Vector3(x, y, z), Color(r, g, b)));
   } else if (prefix == "mat") {
     double kar, kag, kab, kdr, kdg, kdb, ksr, ksg, ksb, ksp, krr, krg, krb;
-    iss >> kar >> kag >> kab >> kdr >> kdg >> kdb >> ksr >> ksg >> ksb >> ksp >> krr >> krg >> krb;
-    material = {Color(kar, kag, kab), Color(kdr, kdg, kdb), Color(ksr, ksg, ksb), ksp, Color(krr, krg, krb)};
+    iss >> kar >> kag >> kab
+        >> kdr >> kdg >> kdb
+        >> ksr >> ksg >> ksb >> ksp
+        >> krr >> krg >> krb;
+    material = {
+      Color(kar, kag, kab),
+      Color(kdr, kdg, kdb),
+      Color(ksr, ksg, ksb), ksp,
+      Color(krr, krg, krb)
+    };
   } else {
     std::cerr << "Warning: skipping unrecognized command \""
               << prefix
@@ -113,7 +121,6 @@ void Scene::render() {
             nearestIntersection = intersection;
             nearestDistance = distance;
             nearestMaterial = sph.material;
-            hitCount++;
           }
         }
       }
@@ -122,6 +129,7 @@ void Scene::render() {
         Vector3 normalDir = nearestIntersection.dir.normalized();
         Vector3 viewDir = (camera.e - point).normalized();
         frame[y*width+x] = phong(point, normalDir, viewDir, nearestMaterial);
+        hitCount++;
       }
       total++;
     }
@@ -197,40 +205,32 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
 }
 
 Color Scene::phong(const Vector3& p, const Vector3& n, const Vector3& v, const Material& material) {
-  return ambient(material.ka)
-       + diffuse(p, n, material.kd)
-       + specular(p, n, v, material.ks, material.sp);
+  Color result = ambient(material.ka);
+  for (PointLight pl : pointLights) {
+    Vector3 lightDir = pl.dirToLight(p);
+    Color intensity = pl.intensity;
+    Ray shadowRay = {p, lightDir};
+    Vector3 l = lightDir.normalized();
+    // TODO do a inbetween check on the shadow ray
+    result = result + diffuse(p, n, l, material.kd, intensity)
+      + specular(p, n, v, l, material.ks, material.sp, intensity);
+  }
+  for (DirectionalLight dl : directionalLights) {
+  }
+  return result;
 }
 Color Scene::ambient(const Color& ka) {
   return ka;
 }
-Color Scene::diffuse(const Vector3& p, const Vector3& n, const Color& kd) {
-  Color res;
-  for (PointLight pl : pointLights) {
-    Vector3 l = (pl.point - p).normalized();
-    res = res + pl.intensity * kd * std::max(0.0, l.dot(n));
-  }
-  for (DirectionalLight dl : directionalLights) {
-    Vector3 l = -1 * dl.dir.normalized();
-    res = res + dl.intensity * kd * std::max(0.0, l.dot(n));
-  }
-  return res;
+Color Scene::diffuse(const Vector3& p, const Vector3& n, const Vector3& l, const Color& kd, const Color& intensity) {
+  return kd * intensity * std::max(0.0, l.dot(n));
+}
+Color Scene::specular(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, const Color& ks, double sp, const Color& intensity) {
+  return ks * intensity * specularIncidence(p, n, v, l, sp);
 }
 double Scene::specularIncidence(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, double sp) {
   Vector3 r = (-1.0 * l + 2.0 * l.dot(n) * n).normalized();
   Vector3 h = (l + v).normalized();
   Vector3 hProj = (h - n * h.dot(n)).normalized();
   return std::pow(std::max(0.0, r.dot(v)), sp);
-}
-Color Scene::specular(const Vector3& p, const Vector3& n, const Vector3& v, const Color& ks, double sp) {
-  Color res;
-  for (PointLight pl : pointLights) {
-    Vector3 l = (pl.point - p).normalized();
-    res = res + ks * pl.intensity * specularIncidence(p, n, v, l, sp);
-  }
-  for (DirectionalLight dl : directionalLights) {
-    Vector3 l = -1 * dl.dir.normalized();
-    res = res + ks * dl.intensity * specularIncidence(p, n, v, l, sp);
-  }
-  return res;
 }

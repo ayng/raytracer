@@ -1,5 +1,6 @@
 #include "Color.h"
 #include <algorithm>
+#include <cstdio>
 
 double bound (const double n, const double lower, const double upper) {
   return std::min(upper, std::max(lower, n));
@@ -49,4 +50,8 @@ Color Color::operator * (const Color& rhs) const {
 
 Color operator * (const double lhs, const Color& rhs) {
   return rhs * lhs;
+}
+
+void Color::dump () const {
+  printf("r:%.2f  g:%.2f  b:%.2f\n", r, g, b);
 }
