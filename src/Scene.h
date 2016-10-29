@@ -32,6 +32,7 @@ class Scene {
   Scene();
 
   void parseLine(std::string line);
+  void parseObj(std::string filename);
   void render();
   Color trace(const Ray& ray);
   Color trace(const Ray& ray, int bouncesLeft);
