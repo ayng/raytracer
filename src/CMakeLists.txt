@@ -11,6 +11,7 @@ add_library(rt
   Matrix.cpp
   Color.cpp
   Light.cpp
+  Geometry.cpp
   Camera.cpp
   Sphere.cpp
 )

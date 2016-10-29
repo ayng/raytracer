@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -5,8 +6,14 @@
 #include "Ray.h"
 #include "Vector.h"
 #include "Light.h"
+#include "Geometry.h"
 
 int main() {
+  {
+    Material mat = {Color(1,1,1), Color(1,1,1), Color(1,1,1), 10, Color(1,1,1)};
+    Triangle tri(Vector3(0,0,0), Vector3(0,1,0), Vector3(1,0,0), mat, scale(1,1,1), scale(1,1,1));
+    tri.p1.dump();
+  }
   {
     std::vector<std::reference_wrapper<Light>> lights;
     DirectionalLight dl(Vector3(1, 1, 1), Color(1, 1, 1));
