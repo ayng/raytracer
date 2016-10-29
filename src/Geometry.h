@@ -18,10 +18,11 @@ class Geometry {
 
 class Triangle : public Geometry {
  public:
-  Vector3 p1, p2, p3;
+  Vector3 a, b, c;
+  Vector3 normal;
 
   Triangle();
-  Triangle(Vector3 p1, Vector3 p2, Vector3 p3,
+  Triangle(Vector3 aa, Vector3 bb, Vector3 cc,
     Material mat, Matrix4 w2o, Matrix4 o2w);
   Ray intersect(const Ray& ray);
 };

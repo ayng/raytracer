@@ -5,6 +5,14 @@
 #include "Vector.h"
 #include "Ray.h"
 
+class Matrix3 {
+public:
+  double v[9];
+  Matrix3();
+  Matrix3(const Vector3& a, const Vector3& b, const Vector3& c);
+  double determinant();
+};
+
 class Matrix4 {
   public:
     double v[16]; // Row-major.

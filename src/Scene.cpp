@@ -23,12 +23,18 @@ void Scene::parseLine(std::string line) {
   std::istringstream iss(line);
   std::string prefix;
   iss >> prefix;
-  if (prefix == "cam") {  // Camera
+  if (prefix == "cam") {
     Vector3 pts[5];
     for (int i = 0; i < 5; i++)
       iss >> pts[i].x >> pts[i].y >> pts[i].z;
     camera = Camera(pts[0], pts[1], pts[2], pts[3], pts[4]);
-  } else if (prefix == "sph") {  // Sphere
+  } else if (prefix == "tri") {
+    double x1, y1, z1, x2, y2, z2, x3, y3, z3;
+    iss >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> x3 >> y3 >> z3;
+    objects.emplace_back(
+      new Triangle(Vector3(x1, y1, z1), Vector3(x2, y2, z2),
+                   Vector3(x3, y3, z3), material, xfIn, xfOut));
+  } else if (prefix == "sph") {
     double cx, cy, cz, r;
     iss >> cx >> cy >> cz >> r;
     objects.emplace_back(

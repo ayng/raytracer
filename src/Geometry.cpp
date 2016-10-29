@@ -9,10 +9,37 @@ Geometry::Geometry(Material mat, Matrix4 w2o, Matrix4 o2w)
 }
 
 Triangle::Triangle() {}
-Triangle::Triangle(Vector3 _p1, Vector3 _p2, Vector3 _p3,
+Triangle::Triangle(Vector3 aa, Vector3 bb, Vector3 cc,
   Material mat, Matrix4 w2o, Matrix4 o2w)
-  : p1(_p1), p2(_p2), p3(_p3), Geometry(mat, w2o, o2w) {}
+  : a(aa), b(bb), c(cc), normal((bb - aa).cross(cc - aa)),
+    Geometry(mat, w2o, o2w) {}
 Ray Triangle::intersect(const Ray& ray) {
+  Ray xfRay = worldToObject.transform(ray);
+  // A + tD = V_a + beta*V_b + gamma*V_c
+  // Solve matrix equation [ -D  V_b  V_c ] x = A - V_a
+  // where x := [ t beta gamma ]
+  // We use Cramer's rule to solve this system of linear equations.
+  Vector3 negDir = -1 * xfRay.dir;
+  Vector3 rhs = xfRay.point - a;
+  Matrix3 m(negDir, b, c);
+  Matrix3 m0(rhs, b, c);
+  Matrix3 m1(negDir, rhs, c);
+  Matrix3 m2(negDir, b, rhs);
+
+  double mDet = m.determinant();
+  double t = m0.determinant() / mDet;
+  if (t < 0) return {NAN_VECTOR, NAN_VECTOR};
+  double beta = m1.determinant() / mDet;
+  double gamma = m2.determinant() / mDet;
+  if (0 < beta && beta < 1 && 0 < gamma && gamma < 1 && beta + gamma < 1) {
+    Vector3 objectPoint = xfRay.point + t * xfRay.dir;
+    Vector3 worldPoint =
+      objectToWorld.dot(Vector4(objectPoint, 1)).toVector3();
+    Vector3 worldNormal =
+      worldToObject.transposed().dot(Vector4(normal, 0)).toVector3();
+    return {worldPoint, worldNormal.normalized()};
+  }
+  return {NAN_VECTOR, NAN_VECTOR};
 }
 
 Sphere::Sphere() {}

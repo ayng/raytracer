@@ -6,6 +6,20 @@
 
 #include "Matrix.h"
 
+Matrix3::Matrix3() {
+  for (int i = 0; i < 9; i++) v[i] = 0;
+}
+Matrix3::Matrix3(const Vector3& a, const Vector3& b, const Vector3& c) {
+  v[0] = a.x; v[1] = b.x; v[2] = c.x;
+  v[3] = a.y; v[4] = b.y; v[5] = c.y;
+  v[6] = a.z; v[7] = b.z; v[8] = c.z;
+}
+double Matrix3::determinant() {
+  return v[0]*(v[4]*v[8] - v[5]*v[7])
+       - v[1]*(v[3]*v[8] - v[5]*v[6])
+       + v[2]*(v[3]*v[7] - v[4]*v[6]);
+}
+
 /* Matrix4 */
 
 Matrix4::Matrix4 () {
