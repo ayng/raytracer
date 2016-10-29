@@ -104,22 +104,22 @@ void Scene::parseObj(std::string filename) {
     std::string prefix;
     std::istringstream iss(line);
     iss >> prefix;
-    if (prefix[0] == 'v') {
+    if (prefix.compare("v") == 0) {
       double x, y, z;
       iss >> x >> y >> z;
       vertices.push_back(Vector3(x, y, z));
       numVertices++;
-    } else if (prefix[0] == 'f') {
+    } else if (prefix.compare("f") == 0) {
       int a, b, c;
       iss >> a >> b >> c;
       objects.emplace_back(
-        new Triangle(vertices[a+1], vertices[b+1], vertices[c+1],
+        new Triangle(vertices[a-1], vertices[b-1], vertices[c-1],
                      material, xfIn, xfOut));
       numFaces++;
     }
   }
   printf("[OBJ] \"%s\" contained %d vertices and %d faces.\n",
-         filename, numVertices, numFaces);
+         filename.c_str(), numVertices, numFaces);
 }
 
 void Scene::render() {
