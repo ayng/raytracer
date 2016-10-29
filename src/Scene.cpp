@@ -227,7 +227,7 @@ Color Scene::trace(const Ray& ray, int bouncesLeft) {
   }
   // Recursively trace reflective rays.
   Vector3 reflectedDir = (2 * n) - v;
-  result = result + trace({p, reflectedDir}, bouncesLeft-1);
+  result = result + mat.kr * trace({p, reflectedDir}, bouncesLeft-1);
   return result;
 }
 

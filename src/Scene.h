@@ -15,7 +15,7 @@
 
 class Scene {
  public:
-  const int kResolution = 15;
+  const int kResolution = 300;
   const int kBounceLimit = 1;
   const Color kBackgroundColor = Color(0, 0, 0);
 
