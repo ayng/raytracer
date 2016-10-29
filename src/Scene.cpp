@@ -12,7 +12,6 @@
 #include "Color.h"
 #include "Scene.h"
 #include "Material.h"
-#include "Intersection.h"
 
 Scene::Scene() {
   xfIn = scale(1, 1, 1);

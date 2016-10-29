@@ -13,7 +13,6 @@
 #include "Matrix.h"
 #include "Ray.h"
 #include "Material.h"
-#include "Intersection.h"
 
 class Scene {
  public:
