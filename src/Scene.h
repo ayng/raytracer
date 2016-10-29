@@ -41,9 +41,12 @@ class Scene {
 
   /* Shading */
   Color ambient(const Color& ka);
-  Color diffuse(const Vector3& p, const Vector3& n, const Vector3& l, const Color& kd, const Color& intensity);
-  Color specular(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, const Color& ks, double sp, const Color& intensity);
-  double specularIncidence(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, double sp);
+  Color diffuse(const Vector3& p, const Vector3& n, const Vector3& l,
+    const Color& kd, const Color& intensity);
+  Color specular(const Vector3& p, const Vector3& n, const Vector3& v,
+    const Vector3& l, const Color& ks, double sp, const Color& intensity);
+  double specularIncidence(const Vector3& p, const Vector3& n, const Vector3& v,
+    const Vector3& l, double sp);
 };
 
 #endif  // SRC_SCENE_H_

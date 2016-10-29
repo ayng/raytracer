@@ -194,12 +194,6 @@ Color Scene::trace(const Ray& ray, int bouncesLeft) {
 
 
 Ray Scene::intersect(const Ray ray, const Sphere sph) {
-  // Let R(t) := A + tD, C := sphere center, r := sphere radius, X := A - C
-  // 0 = | A + tD - C |^2 - r^2
-  // 0 = | X + tD |^2 - r^2
-  // 0 = (X_1 + tD_1)^2 + (X_2 + tD_2)^2 + (X_3 + tD_3)^2 - r^2
-  // 0 = X_1^2 + 2tX_1D_1 + t^2D_1^2 + X_2^2 + 2tX_2D_2 + t^2D_2^2 + ... - r^2 = 0
-  // 0 = |X|^2 - r^2 + 2t(X.D) + t^2|D|^2
   // Transform ray to the coordinate space of the sphere.
   Ray xfRay = sph.in.transform(ray);
   xfRay.dir = xfRay.dir.normalized();
@@ -241,7 +235,8 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
   }
   Ray result = sph.out.transform(surfaceNormal);
   Vector3 worldPoint = sph.out.dot(Vector4(surfaceNormal.point, 1)).toVector3();
-  Vector3 worldNormal = sph.in.transposed().dot(Vector4(surfaceNormal.dir, 0)).toVector3();
+  Vector3 worldNormal =
+    sph.in.transposed().dot(Vector4(surfaceNormal.dir, 0)).toVector3();
   Ray worldSurfaceNormal = {worldPoint, worldNormal};
   return worldSurfaceNormal;
 }
@@ -249,13 +244,16 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
 Color Scene::ambient(const Color& ka) {
   return ka * ambientLight;
 }
-Color Scene::diffuse(const Vector3& p, const Vector3& n, const Vector3& l, const Color& kd, const Color& intensity) {
+Color Scene::diffuse(const Vector3& p, const Vector3& n, const Vector3& l,
+  const Color& kd, const Color& intensity) {
   return kd * intensity * std::max(0.0, l.dot(n));
 }
-Color Scene::specular(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, const Color& ks, double sp, const Color& intensity) {
+Color Scene::specular(const Vector3& p, const Vector3& n, const Vector3& v,
+  const Vector3& l, const Color& ks, double sp, const Color& intensity) {
   return ks * intensity * specularIncidence(p, n, v, l, sp);
 }
-double Scene::specularIncidence(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, double sp) {
+double Scene::specularIncidence(const Vector3& p, const Vector3& n,
+  const Vector3& v, const Vector3& l, double sp) {
   Vector3 r = (-1.0 * l + 2.0 * l.dot(n) * n).normalized();
   Vector3 h = (l + v).normalized();
   Vector3 hProj = (h - n * h.dot(n)).normalized();
