@@ -6,7 +6,6 @@
 #include <sys/time.h>
 
 #include <pngwriter.h>
-#include "Color.h"
 #include "Scene.h"
 
 double timestamp()

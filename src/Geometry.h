@@ -26,4 +26,14 @@ class Triangle : public Geometry {
   Ray intersect(const Ray& ray);
 };
 
+class Sphere : public Geometry {
+ public:
+  Vector3 center;
+  double radius;
+
+  Sphere();
+  Sphere(Vector3 c, double r, Material mat, Matrix4 w2o, Matrix4 o2w);
+  Ray intersect(const Ray& ray);
+};
+
 #endif  // SRC_GEOMETRY_H_

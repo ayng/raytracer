@@ -9,9 +9,7 @@
 #include <cmath>
 #include <cstdio>
 
-#include "Color.h"
 #include "Scene.h"
-#include "Material.h"
 
 Scene::Scene() {
   xfIn = scale(1, 1, 1);
@@ -29,11 +27,12 @@ void Scene::parseLine(std::string line) {
     Vector3 pts[5];
     for (int i = 0; i < 5; i++)
       iss >> pts[i].x >> pts[i].y >> pts[i].z;
-    this->camera = Camera(pts[0], pts[1], pts[2], pts[3], pts[4]);
+    camera = Camera(pts[0], pts[1], pts[2], pts[3], pts[4]);
   } else if (prefix == "sph") {  // Sphere
     double cx, cy, cz, r;
     iss >> cx >> cy >> cz >> r;
-    this->spheres.push_back(Sphere(cx, cy, cz, r, material, xfIn, xfOut));
+    objects.emplace_back(
+      new Sphere(Vector3(cx, cy, cz), r, material, xfIn, xfOut));
   } else if (prefix == "xfz") {
     xfIn = scale(1, 1, 1);
     xfOut = scale(1, 1, 1);
@@ -140,15 +139,16 @@ Color Scene::trace(const Ray& ray, int bouncesLeft) {
   }
   double nearestDistance = INFINITY;
   Ray nearestIntersection = {NAN_VECTOR, NAN_VECTOR};
-  Sphere nearestSphere;
-  for (Sphere sph : spheres) {
-    Ray intersection = intersect(ray, sph);
+  Material nearestMaterial;
+  for (int i = 0; i < objects.size(); i++) {
+    Geometry& geometry = *objects[i];
+    Ray intersection = geometry.intersect(ray);
     if (intersection.point.isDefined()) {
       double distance = (intersection.point - ray.point).magnitude();
       if (distance < nearestDistance && distance > 1e-6) {
         nearestIntersection = intersection;
         nearestDistance = distance;
-        nearestSphere = sph;
+        nearestMaterial = geometry.material;
       }
     }
   }
@@ -160,7 +160,7 @@ Color Scene::trace(const Ray& ray, int bouncesLeft) {
   Vector3 p = nearestIntersection.point;
   Vector3 n = nearestIntersection.dir.normalized();
   Vector3 v = (ray.point - p).normalized();
-  Material mat = nearestSphere.material;
+  Material mat = nearestMaterial;
   Color result = ambient(mat.ka);
   for (int i = 0; i < lights.size(); i++) {
     Light& light = *lights[i];
@@ -168,8 +168,9 @@ Color Scene::trace(const Ray& ray, int bouncesLeft) {
     Ray shadowRay = {p, l};
     // Check if there are any intersections between this point and the light.
     bool isShadowed = false;
-    for (Sphere sph : spheres) {
-      Ray intersection = intersect(shadowRay, sph);
+    for (int i = 0; i < objects.size(); i++) {
+      Geometry& geometry = *objects[i];
+      Ray intersection = geometry.intersect(shadowRay);
       if (intersection.point.isDefined()) {
         double distanceToIntersection = (intersection.point - p).magnitude();
         // If the intersection lies between the light and the point,
@@ -190,55 +191,6 @@ Color Scene::trace(const Ray& ray, int bouncesLeft) {
   Vector3 reflectedDir = (2 * n) - v;
   result = result + trace({p, reflectedDir}, bouncesLeft-1);
   return result;
-}
-
-
-Ray Scene::intersect(const Ray ray, const Sphere sph) {
-  // Transform ray to the coordinate space of the sphere.
-  Ray xfRay = sph.in.transform(ray);
-  xfRay.dir = xfRay.dir.normalized();
-
-  // Calculate quadratic equation coefficients.
-  Vector3 x = xfRay.point - sph.center;
-  double a = xfRay.dir.dot(xfRay.dir);
-  double b = 2 * x.dot(xfRay.dir);
-  double c = x.dot(x) - sph.radius*sph.radius;
-
-  // Calculate discriminant to determine number of solutions.
-  double discriminant = b*b - 4*a*c;
-  // If there are no real solutions, we just return undefined.
-  if (discriminant < 0) return {NAN_VECTOR, NAN_VECTOR};
-
-  // Plugging t back into R(t), we find the solutions.
-  double tPlus = (-b + std::sqrt(discriminant)) / (2*a);
-  double tMinus = (-b - std::sqrt(discriminant)) / (2*a);
-  Vector3 solnPlus = xfRay.point + tPlus * xfRay.dir;
-  Vector3 solnMinus = xfRay.point + tMinus * xfRay.dir;
-
-  // We ensure the intersection is in front of the ray by checking that t > 0.
-  Ray surfaceNormal;
-  if (tPlus <= 0 && tMinus <= 0) {
-    surfaceNormal = {NAN_VECTOR, NAN_VECTOR};
-  } else if (tPlus <= 0 && tMinus > 0) {
-    surfaceNormal = {solnMinus, (solnMinus - sph.center)};
-  } else if (tPlus > 0 && tMinus <= 0) {
-    surfaceNormal = {solnPlus, (solnPlus - sph.center)};
-  } else {
-    // The only other possibility is that both solutions have positive t-values.
-    // We choose the solution that is closer to the ray's start point.
-    double distancePlus = (solnPlus - xfRay.point).magnitude();
-    double distanceMinus = (solnMinus - xfRay.point).magnitude();
-    if (distancePlus < distanceMinus)
-      surfaceNormal = {solnPlus, (solnPlus - sph.center)};
-    else
-      surfaceNormal = {solnMinus, (solnMinus - sph.center)};
-  }
-  Ray result = sph.out.transform(surfaceNormal);
-  Vector3 worldPoint = sph.out.dot(Vector4(surfaceNormal.point, 1)).toVector3();
-  Vector3 worldNormal =
-    sph.in.transposed().dot(Vector4(surfaceNormal.dir, 0)).toVector3();
-  Ray worldSurfaceNormal = {worldPoint, worldNormal};
-  return worldSurfaceNormal;
 }
 
 Color Scene::ambient(const Color& ka) {

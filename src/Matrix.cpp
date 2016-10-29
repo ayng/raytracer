@@ -5,8 +5,6 @@
 #include <initializer_list>
 
 #include "Matrix.h"
-#include "Vector.h"
-#include "Ray.h"
 
 /* Matrix4 */
 

@@ -1,6 +1,6 @@
-#include "Color.h"
 #include <algorithm>
 #include <cstdio>
+#include "Color.h"
 
 double bound (const double n, const double lower, const double upper) {
   return std::min(upper, std::max(lower, n));

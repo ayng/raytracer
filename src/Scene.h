@@ -6,8 +6,7 @@
 #include <string>
 #include <memory>
 
-#include "Sphere.h"
-#include "Triangle.h"
+#include "Geometry.h"
 #include "Light.h"
 #include "Camera.h"
 #include "Matrix.h"
@@ -20,10 +19,9 @@ class Scene {
   const int kBounceLimit = 1;
   const Color kBackgroundColor = Color(0, 0, 0);
 
-  std::vector<Sphere> spheres;
-  std::vector<Triangle> triangles;
-  Color ambientLight;
+  std::vector<std::unique_ptr<Geometry>> objects;
   std::vector<std::unique_ptr<Light>> lights;
+  Color ambientLight;
   Camera camera;
 
   Matrix4 xfIn;

@@ -1,8 +1,6 @@
 /** Copyright 2016 Alex Yang */
 #include <cmath>
 #include "Light.h"
-#include "Vector.h"
-#include "Color.h"
 
 Light::Light() {}
 Light::Light(Color i) : intensity(i) {}
