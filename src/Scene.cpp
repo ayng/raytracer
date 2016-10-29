@@ -11,6 +11,7 @@
 #include "Color.h"
 #include "Scene.h"
 #include "Material.h"
+#include "Intersection.h"
 
 
 const std::map<std::string, int> argnum = {
@@ -130,7 +131,7 @@ void Scene::render() {
         Vector3 point = nearestIntersection.point;
         Vector3 normalDir = nearestIntersection.dir.normalized();
         Vector3 viewDir = (camera.e - point).normalized();
-        frame[y*width+x] = phong(point, normalDir, viewDir, nearestMaterial);
+        frame[y*width+x] = phong(point, normalDir, viewDir, nearestMaterial, 1);
         hitCount++;
       }
       total++;
@@ -206,7 +207,7 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
   return worldSurfaceNormal;
 }
 
-Color Scene::phong(const Vector3& p, const Vector3& n, const Vector3& v, const Material& material) {
+Color Scene::phong(const Vector3& p, const Vector3& n, const Vector3& v, const Material& material, int numBounces) {
   Color result = ambient(material.ka);
   for (PointLight pl : pointLights) {
     Vector3 lightDir = pl.dirToLight(p);
@@ -233,6 +234,7 @@ Color Scene::phong(const Vector3& p, const Vector3& n, const Vector3& v, const M
   }
   for (DirectionalLight dl : directionalLights) {
   }
+  result = result + reflect(p, n, v, material.kr, numBounces);
   return result;
 }
 Color Scene::ambient(const Color& ka) {
@@ -249,4 +251,49 @@ double Scene::specularIncidence(const Vector3& p, const Vector3& n, const Vector
   Vector3 h = (l + v).normalized();
   Vector3 hProj = (h - n * h.dot(n)).normalized();
   return std::pow(std::max(0.0, r.dot(v)), sp);
+}
+Color Scene::reflect(const Vector3& p, const Vector3& n, const Vector3& v, const Color& kr, int numBounces) {
+  if (numBounces == 0) {
+    return Color(0, 0, 0);
+  }
+  Color res;
+  // Determine reflected direction.
+  Vector3 reflectedDir = (2 * n) - v;
+  Intersection isection = nearestIntersection({p, reflectedDir});
+  bool intersectionExists = isection.point.isDefined();
+  double distanceToIntersection = intersectionExists ?
+                                  (isection.point - p).magnitude() : 0;
+  if (intersectionExists) {
+    res = res + phong(isection.point, isection.normal, reflectedDir, isection.sphere.material, numBounces - 1);
+  }
+  /*
+  for (PointLight pl : pointLights) {
+    Vector3 lightDir = pl.dirToLight(p);
+    double distanceToLight = lightDir.magnitude();
+    bool isOccluded = intersectionExists ?
+                      distanceToIntersection < distanceToLight : false;
+    bool hitsLight = (lightDir.normalized() - reflectedDir).magnitude() < 1e-6;
+    if (intersectionExists) {
+    }
+  }
+  */
+  return res;
+}
+
+Intersection Scene::nearestIntersection(const Ray& ray) {
+  double nearestDistance = INFINITY;
+  Ray nearestIntersection = {NAN_VECTOR, NAN_VECTOR};
+  Sphere nearestSphere;
+  for (Sphere sph : spheres) {
+    Ray intersection = intersect(ray, sph);
+    if (intersection.point.isDefined()) {
+      double distance = (intersection.point - ray.point).magnitude();
+      if (1e-6 < distance && distance < nearestDistance) {
+        nearestIntersection = intersection;
+        nearestDistance = distance;
+        nearestSphere = sph;
+      }
+    }
+  }
+  return {nearestIntersection.point, nearestIntersection.dir, nearestSphere};
 }
