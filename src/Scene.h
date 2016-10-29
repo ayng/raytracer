@@ -1,7 +1,9 @@
-#ifndef SCENE_H
-#define SCENE_H
+/** Copyright 2016 Alex Yang */
+#ifndef SRC_SCENE_H_
+#define SRC_SCENE_H_
 
 #include <vector>
+#include <string>
 
 #include "Sphere.h"
 #include "Triangle.h"
@@ -13,34 +15,35 @@
 #include "Intersection.h"
 
 class Scene {
-  public:
-    const int resolution = 240;
+ public:
+  const int kResolution = 240;
+  const int kBounceLimit = 3;
+  const Color kBackgroundColor = Color(0, 0, 0);
 
-    std::vector<Sphere> spheres;
-    std::vector<Triangle> triangles;
-    std::vector<PointLight> pointLights;
-    std::vector<DirectionalLight> directionalLights;
-    Camera camera;
+  std::vector<Sphere> spheres;
+  std::vector<Triangle> triangles;
+  std::vector<PointLight> pointLights;
+  std::vector<DirectionalLight> directionalLights;
+  Camera camera;
 
-    Matrix4 xfIn;
-    Matrix4 xfOut;
+  Matrix4 xfIn;
+  Matrix4 xfOut;
 
-    Material material;
+  Material material;
 
-    Scene ();
+  Scene();
 
-    void parseLine (std::string line);
-    void render ();
-    Ray intersect (Ray ray, Sphere s);
-    Intersection nearestIntersection (const Ray& ray);
+  void parseLine(std::string line);
+  void render();
+  Color trace(const Ray& ray);
+  Color trace(const Ray& ray, int bouncesLeft);
+  Ray intersect(Ray ray, Sphere s);
 
-    /* Shading */
-    Color phong(const Vector3& p, const Vector3& n, const Vector3& v, const Material& material, int numBounces);
-    Color ambient (const Color& ka);
-    Color diffuse(const Vector3& p, const Vector3& n, const Vector3& l, const Color& kd, const Color& intensity);
-    Color specular(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, const Color& ks, double sp, const Color& intensity);
-    double specularIncidence(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, double sp);
-    Color reflect(const Vector3& p, const Vector3& n, const Vector3& v, const Color& kr, int numBounces);
+  /* Shading */
+  Color ambient(const Color& ka);
+  Color diffuse(const Vector3& p, const Vector3& n, const Vector3& l, const Color& kd, const Color& intensity);
+  Color specular(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, const Color& ks, double sp, const Color& intensity);
+  double specularIncidence(const Vector3& p, const Vector3& n, const Vector3& v, const Vector3& l, double sp);
 };
 
-#endif
+#endif  // SRC_SCENE_H_
