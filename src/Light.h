@@ -4,24 +4,34 @@
 #include "Vector.h"
 #include "Color.h"
 
-class PointLight {
-  public:
-    Vector3 point;
-    Color intensity;
+class Light {
+ public:
+  Color intensity;
 
-    PointLight ();
-    PointLight (Vector3 p, Color c);
-    Vector3 dirToLight (Vector3 p);
+  Light();
+  Light(Color intensity);
+  virtual Vector3 dirToLight(const Vector3& p) = 0;
+  virtual double distanceToLight (const Vector3& p) = 0;
 };
 
-class DirectionalLight {
+class PointLight : public Light {
+  public:
+    Vector3 point;
+
+    PointLight ();
+    PointLight (Vector3 p, Color i);
+    Vector3 dirToLight (const Vector3& p) override;
+    double distanceToLight (const Vector3& p) override;
+};
+
+class DirectionalLight : public Light {
   public:
     Vector3 dir;
-    Color intensity;
 
     DirectionalLight ();
-    DirectionalLight (Vector3 d, Color c);
-    Vector3 dirToLight (Vector3 p);
+    DirectionalLight (Vector3 d, Color i);
+    Vector3 dirToLight (const Vector3& p) override;
+    double distanceToLight (const Vector3& p) override;
 };
 
 class AmbientLight {};

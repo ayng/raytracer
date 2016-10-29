@@ -17,7 +17,8 @@
 Scene::Scene() {
   xfIn = scale(1, 1, 1);
   xfOut = scale(1, 1, 1);
-  material = {Color(.5, .5, .5), Color(0, 0, 0), Color(0, 0, 0), 1, Color(0, 0, 0)};
+  material =
+    {Color(.5, .5, .5), Color(0, 0, 0), Color(0, 0, 0), 1, Color(0, 0, 0)};
 }
 
 void Scene::parseLine(std::string line) {
@@ -52,10 +53,18 @@ void Scene::parseLine(std::string line) {
     iss >> x >> y >> z;
     xfIn = scale(1/x, 1/y, 1/z).dot(xfIn);
     xfOut = xfOut.dot(scale(x, y, z));
+  } else if (prefix == "lta") {
+    double r, g, b;
+    iss >> r >> g >> b;
+    ambientLight = Color(r, g, b);
   } else if (prefix == "ltp") {
     double x, y, z, r, g, b, falloff;
     iss >> x >> y >> z >> r >> g >> b >> falloff;
-    pointLights.push_back(PointLight(Vector3(x, y, z), Color(r, g, b)));
+    lights.emplace_back(new PointLight(Vector3(x, y, z), Color(r, g, b)));
+  } else if (prefix == "ltd") {
+    double x, y, z, r, g, b;
+    iss >> x >> y >> z >> r >> g >> b;
+    lights.emplace_back(new DirectionalLight(Vector3(x, y, z), Color(r, g, b)));
   } else if (prefix == "mat") {
     double kar, kag, kab, kdr, kdg, kdb, ksr, ksg, ksb, ksp, krr, krg, krb;
     iss >> kar >> kag >> kab
@@ -144,6 +153,7 @@ Color Scene::trace(const Ray& ray, int bouncesLeft) {
       }
     }
   }
+
   if (!nearestIntersection.point.isDefined()) {
     return kBackgroundColor;
   }
@@ -153,27 +163,29 @@ Color Scene::trace(const Ray& ray, int bouncesLeft) {
   Vector3 v = (ray.point - p).normalized();
   Material mat = nearestSphere.material;
   Color result = ambient(mat.ka);
-  for (PointLight pl : pointLights) {
-    Vector3 lightDir = pl.dirToLight(p);
-    Ray shadowRay = {p, lightDir};
-    Vector3 l = lightDir.normalized();
+  for (int i = 0; i < lights.size(); i++) {
+    Light& light = *lights[i];
+    Vector3 l = light.dirToLight(p);
+    Ray shadowRay = {p, l};
     // Check if there are any intersections between this point and the light.
     bool isShadowed = false;
     for (Sphere sph : spheres) {
       Ray intersection = intersect(shadowRay, sph);
       if (intersection.point.isDefined()) {
         double distanceToIntersection = (intersection.point - p).magnitude();
-        double distanceToLight = lightDir.magnitude();
-        // If the intersection lies between the light and the point, skip shading for this light.
+        // If the intersection lies between the light and the point,
+        // skip shading for this light.
         // The second condition prevents self-shadowing.
-        if (distanceToIntersection < distanceToLight && distanceToIntersection > 1e-6) {
+        if (distanceToIntersection < light.distanceToLight(p) &&
+            distanceToIntersection > 1e-6) {
           isShadowed = true;
         }
       }
     }
-    if (!isShadowed)
-      result = result + diffuse(p, n, l, mat.kd, pl.intensity)
-        + specular(p, n, v, l, mat.ks, mat.sp, pl.intensity);
+    if (!isShadowed) {
+      result = result + diffuse(p, n, l, mat.kd, light.intensity);
+      result = result + specular(p, n, v, l, mat.ks, mat.sp, light.intensity);
+    }
   }
   // Recursively trace reflective rays.
   Vector3 reflectedDir = (2 * n) - v;
@@ -236,7 +248,7 @@ Ray Scene::intersect(const Ray ray, const Sphere sph) {
 }
 
 Color Scene::ambient(const Color& ka) {
-  return ka;
+  return ka * ambientLight;
 }
 Color Scene::diffuse(const Vector3& p, const Vector3& n, const Vector3& l, const Color& kd, const Color& intensity) {
   return kd * intensity * std::max(0.0, l.dot(n));

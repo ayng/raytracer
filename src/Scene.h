@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "Sphere.h"
 #include "Triangle.h"
@@ -17,13 +18,13 @@
 class Scene {
  public:
   const int kResolution = 240;
-  const int kBounceLimit = 3;
+  const int kBounceLimit = 1;
   const Color kBackgroundColor = Color(0, 0, 0);
 
   std::vector<Sphere> spheres;
   std::vector<Triangle> triangles;
-  std::vector<PointLight> pointLights;
-  std::vector<DirectionalLight> directionalLights;
+  Color ambientLight;
+  std::vector<std::unique_ptr<Light>> lights;
   Camera camera;
 
   Matrix4 xfIn;

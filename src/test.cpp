@@ -1,8 +1,28 @@
+#include <functional>
+#include <memory>
+#include <vector>
 #include "Matrix.h"
 #include "Ray.h"
 #include "Vector.h"
+#include "Light.h"
 
 int main() {
+  {
+    std::vector<std::reference_wrapper<Light>> lights;
+    DirectionalLight dl(Vector3(1, 1, 1), Color(1, 1, 1));
+    PointLight pl(Vector3(1, 1, 1), Color(1, 1, 1));
+    lights.push_back(dl);
+    lights.push_back(pl);
+    lights[0].get().dirToLight(Vector3(0, 0, 0)).dump();
+    lights[1].get().dirToLight(Vector3(0, 0, 0)).dump();
+  }
+  {
+    std::vector<std::unique_ptr<Light>> lights;
+    {
+      lights.emplace_back(new DirectionalLight(Vector3(1, 1, 1), Color(1, 1, 1)));
+    }
+    lights[0]->dirToLight(Vector3(0, 0, 0)).dump();
+  }
   {
     Matrix4 s = scale(2, 3, 4);
     Matrix4 sInv = scale(1.0/2, 1.0/3, 1.0/4);
@@ -21,5 +41,4 @@ int main() {
     rT.point.dump();
     rT.dir.dump();
   }
-
 }
