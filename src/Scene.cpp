@@ -165,7 +165,7 @@ std::vector<Color> Scene::render() {
       Vector3 worldPixel = camera.bl
         + unitY * (static_cast<double>(y) / resolution)
         + unitX * (static_cast<double>(x) / resolution);
-      std::vector<std::pair<double, double>> samples = jitteredGrid(2);
+      std::vector<std::pair<double, double>> samples = jitteredGrid(antialias);
       for (std::pair<double, double> pt : samples) {
         Vector3 worldPoint = worldPixel
           + unitX * (pt.first / resolution)
