@@ -183,6 +183,10 @@ std::vector<Color> Scene::render() {
 
 std::vector<std::pair<double, double>> Scene::jitteredGrid(int size) {
   std::vector<std::pair<double, double>> res;
+  if (size == 1) {
+    res.push_back(std::pair<double, double>(0.5, 0.5));
+    return res;
+  }
   std::vector<double> increments;
   for (int i = 0; i < size; i++) {
     increments.push_back(static_cast<double>(i) / size);
