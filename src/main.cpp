@@ -29,9 +29,11 @@ int main(int argc, char **argv) {
       resolution = atoi(argv[++i]);
     } else if (arg.compare("-aa") == 0) {
       antialias = atoi(argv[++i]);
-      printf("Anti-alias set to %d; casting %d rays per pixel.\n", antialias, antialias*antialias);
     }
   }
+  printf("Resolution: %d\n", resolution);
+  printf("Anti-alias: %d (casting %d rays per pixel)\n",
+    antialias, antialias*antialias);
 
   if (!isFilenameSet) {
     std::cerr << "[ERROR] Filename not set.\n" << kUsage << std::endl;
