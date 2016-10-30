@@ -9,6 +9,9 @@ find_package(Freetype REQUIRED)
 # pngwriter
 add_subdirectory(pngwriter)
 include_directories(pngwriter/src)
+# docopt 
+add_subdirectory(docopt)
+include_directories(docopt)
 
 # my code
 add_subdirectory(src)

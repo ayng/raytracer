@@ -11,7 +11,8 @@
 
 #include "Scene.h"
 
-Scene::Scene() {
+Scene::Scene(int res, const std::string& fname) : filename(fname) {
+  resolution = res;
   xfIn = scale(1, 1, 1);
   xfOut = scale(1, 1, 1);
   material =
@@ -128,8 +129,8 @@ void Scene::render() {
   Vector3 imagePlaneX = camera.br - camera.bl;
   double imagePlaneH = imagePlaneY.magnitude();
   double imagePlaneW = imagePlaneX.magnitude();
-  int height = static_cast<int>(kResolution * imagePlaneH);
-  int width = static_cast<int>(kResolution * imagePlaneW);
+  int height = static_cast<int>(resolution * imagePlaneH);
+  int width = static_cast<int>(resolution * imagePlaneW);
   Vector3 unitY = imagePlaneY.normalized();
   Vector3 unitX = imagePlaneX.normalized();
 
@@ -149,12 +150,12 @@ void Scene::render() {
     for (int x = 0; x < width; x++) {
       // Determine world coordinates of pixel at (x, y) of image plane.
       Vector3 world = camera.bl
-        + unitY * (static_cast<double>(y) / kResolution)
-        + unitX * (static_cast<double>(x) / kResolution);
+        + unitY * (static_cast<double>(y) / resolution)
+        + unitX * (static_cast<double>(x) / resolution);
       // Point ray from camera eye to center of pixel.
       Vector3 direction = (world
-        + unitX * (0.5 / kResolution)
-        + unitY * (0.5 / kResolution)) - camera.e;
+        + unitX * (0.5 / resolution)
+        + unitY * (0.5 / resolution)) - camera.e;
       Ray cameraRay = {camera.e, direction};
 
       frame[y*width+x] = trace(cameraRay);
@@ -164,8 +165,8 @@ void Scene::render() {
 
 
   // Save frame buffer to an image.
-  printf("[RENDER] Writing to \"%s\".\n", "output.png");
-  pngwriter png(width, height, 0, "output.png");
+  printf("[RENDER] Writing to \"%s\".\n", filename.c_str());
+  pngwriter png(width, height, 0, filename.c_str());
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       Color c = frame[y*width+x];

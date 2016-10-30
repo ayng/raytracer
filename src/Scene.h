@@ -16,7 +16,8 @@
 
 class Scene {
  public:
-  const int kResolution = 240;
+  int resolution;
+  std::string filename;
   const int kBounceLimit = 1;
   const Color kBackgroundColor = Color(0, 0, 0);
 
@@ -32,7 +33,7 @@ class Scene {
 
   Profiler profiler;
 
-  Scene();
+  Scene(int res, const std::string& filename);
 
   void parseLine(std::string line);
   void parseObj(std::string filename);

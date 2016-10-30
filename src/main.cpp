@@ -6,10 +6,31 @@
 #include <sys/time.h>
 
 #include <pngwriter.h>
+#include <docopt.h>
 #include "Scene.h"
 
+static const char kUsage[] =
+R"(Raytracer.
+
+Usage: raytracer [options]
+
+Options:
+  -o FILE     Output file name.
+  -r INTEGER  Resolution in pixels per unit [default: 40].
+)";
+
 int main(int argc, char **argv) {
-  Scene scene;
+  // Configure with command line arguments.
+  std::map<std::string, docopt::value> args = docopt::docopt(kUsage,
+                       { argv + 1, argv + argc },
+                       true,               // show help if requested
+                       "Raytracer 0.0");  // version string
+
+  std::string filename = args["-o"].asString();
+  long res = args["-r"].asLong();
+
+  Scene scene(res, filename);
+
   // Read scene description from stdin.
   for (std::string line; std::getline(std::cin, line);) {
     scene.parseLine(line);
