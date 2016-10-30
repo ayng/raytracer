@@ -13,7 +13,7 @@ task :clean do
 end
 
 task :run do
-  sh "build/raytracer < test_scene.txt"
+  output = `build/raytracer -o cube.png -r 400 -aa 3 < scenes/cube.txt`
 end
 task :test do
   sh "build/rt_test"
