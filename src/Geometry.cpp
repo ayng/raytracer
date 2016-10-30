@@ -11,13 +11,13 @@ Geometry::Geometry(Material mat, Matrix4 w2o, Matrix4 o2w)
 Triangle::Triangle() {}
 Triangle::Triangle(Vector3 aa, Vector3 bb, Vector3 cc,
   Material mat, Matrix4 w2o, Matrix4 o2w)
-  : a(aa), b(bb), c(cc), normal((bb - aa).cross(cc - aa)),
+  : a(aa), b(bb), c(cc), normal((bb - aa).cross(cc - aa).normalized()),
     Geometry(mat, w2o, o2w) {}
 Ray Triangle::intersect(const Ray& ray) {
   Ray xfRay = worldToObject.transform(ray);
   // Determine t.
   double d = normal.dot(a);
-  double t = (normal.dot(xfRay.point) + d) / normal.dot(xfRay.dir);
+  double t = (d - normal.dot(xfRay.point)) / normal.dot(xfRay.dir);
   if (t < 0) return {NAN_VECTOR, NAN_VECTOR};
   // Determine if intersection point is within the triangle.
   Vector3 p = xfRay.point + t * xfRay.dir;
