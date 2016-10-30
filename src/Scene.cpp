@@ -1,4 +1,5 @@
 /** Copyright 2016 Alex Yang */
+#include <random>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -11,8 +12,9 @@
 #include "Scene.h"
 #include <pngwriter.h>
 
-Scene::Scene(int res) {
+Scene::Scene(int res, int aa) {
   resolution = res;
+  antialias = aa;
   xfIn = scale(1, 1, 1);
   xfOut = scale(1, 1, 1);
   material =
@@ -160,21 +162,41 @@ std::vector<Color> Scene::render() {
     }
     for (int x = 0; x < width; x++) {
       // Determine world coordinates of pixel at (x, y) of image plane.
-      Vector3 world = camera.bl
+      Vector3 worldPixel = camera.bl
         + unitY * (static_cast<double>(y) / resolution)
         + unitX * (static_cast<double>(x) / resolution);
-      // Point ray from camera eye to center of pixel.
-      Vector3 direction = (world
-        + unitX * (0.5 / resolution)
-        + unitY * (0.5 / resolution)) - camera.e;
-      Ray cameraRay = {camera.e, direction};
-
-      frame[y*width+x] = trace(cameraRay);
+      std::vector<std::pair<double, double>> samples = jitteredGrid(2);
+      for (std::pair<double, double> pt : samples) {
+        Vector3 worldPoint = worldPixel
+          + unitX * (pt.first / resolution)
+          + unitY * (pt.second / resolution);
+        Vector3 direction = worldPoint - camera.e;
+        frame[y*width+x] = frame[y*width+x] + trace({camera.e, direction});
+      }
+      frame[y*width+x] = frame[y*width+x] * (1.0 / samples.size());
     }
   }
   printf("[RENDER] Completed in %.3f seconds.\n", profiler.now() - start);
 
   return frame;
+}
+
+std::vector<std::pair<double, double>> Scene::jitteredGrid(int size) {
+  std::vector<std::pair<double, double>> res;
+  std::vector<double> increments;
+  for (int i = 0; i < size; i++) {
+    increments.push_back(static_cast<double>(i) / size);
+  }
+  for (int i = 0; i < size; i++) {
+    for (int j = 0; j < size; j++) {
+      double jitterX = (static_cast<double>(std::rand()) / RAND_MAX) / size;
+      double jitterY = (static_cast<double>(std::rand()) / RAND_MAX) / size;
+      double x = increments[i] + jitterX;
+      double y = increments[j] + jitterY;
+      res.push_back(std::pair<double, double>(x, y));
+    }
+  }
+  return res;
 }
 
 Color Scene::trace(const Ray& ray) {

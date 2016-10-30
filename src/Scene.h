@@ -16,10 +16,11 @@
 
 class Scene {
  public:
-  int resolution;
-  std::string filename;
   const int kBounceLimit = 1;
   const Color kBackgroundColor = Color(0, 0, 0);
+
+  int resolution;
+  int antialias;
 
   std::vector<std::unique_ptr<Geometry>> objects;
   std::vector<std::unique_ptr<Light>> lights;
@@ -33,7 +34,7 @@ class Scene {
 
   Profiler profiler;
 
-  Scene(int res);
+  Scene(int res, int aa);
 
   int getWidth();
   int getHeight();
@@ -44,6 +45,7 @@ class Scene {
   Color trace(const Ray& ray);
   Color trace(const Ray& ray, int bouncesLeft);
   Ray intersect(Ray ray, Sphere s);
+  std::vector<std::pair<double, double>> jitteredGrid(int size);
 
   /* Shading */
   Color ambient(const Color& ka);

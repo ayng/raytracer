@@ -26,30 +26,38 @@ Color::Color (const Color& orig) {
 
 Color Color::operator + (const Color& rhs) const {
   Color res(*this);
-  res.r = bound(rhs.r + res.r, 0.0, 1.0);
-  res.g = bound(rhs.g + res.g, 0.0, 1.0);
-  res.b = bound(rhs.b + res.b, 0.0, 1.0);
+  res.r = rhs.r + res.r;
+  res.g = rhs.g + res.g;
+  res.b = rhs.b + res.b;
   return res;
 }
 
 Color Color::operator * (const double rhs) const {
   Color res(*this);
-  res.r = bound(res.r * rhs, 0.0, 1.0);
-  res.g = bound(res.g * rhs, 0.0, 1.0);
-  res.b = bound(res.b * rhs, 0.0, 1.0);
+  res.r = res.r * rhs;
+  res.g = res.g * rhs;
+  res.b = res.b * rhs;
   return res;
 }
 
 Color Color::operator * (const Color& rhs) const {
   Color res(*this);
-  res.r = bound(res.r * rhs.r, 0.0, 1.0);
-  res.g = bound(res.g * rhs.g, 0.0, 1.0);
-  res.b = bound(res.b * rhs.b, 0.0, 1.0);
+  res.r = res.r * rhs.r;
+  res.g = res.g * rhs.g;
+  res.b = res.b * rhs.b;
   return res;
 }
 
 Color operator * (const double lhs, const Color& rhs) {
   return rhs * lhs;
+}
+
+Color Color::clipped() const {
+  return Color(
+    bound(r, 0.0, 1.0),
+    bound(g, 0.0, 1.0),
+    bound(b, 0.0, 1.0)
+  );
 }
 
 void Color::dump () const {

@@ -10,6 +10,7 @@ class Color {
     Color operator + (const Color& rhs) const;
     Color operator * (const Color& rhs) const;
     Color operator * (const double rhs) const;
+    Color clipped() const;
     void dump () const;
 };
 

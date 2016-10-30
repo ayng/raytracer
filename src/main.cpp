@@ -10,11 +10,13 @@
 #include "Scene.h"
 
 const int kDefaultResolution = 40;
+const int kDefaultAA = 1;
 const char kUsage[] = "Usage: raytracer -o myimage.png [-r <resolution>]";
 
 int main(int argc, char **argv) {
   // Configure with command line arguments.
   int resolution = kDefaultResolution;
+  int antialias = kDefaultAA;
   char *filename = NULL;
   bool isFilenameSet = false;
 
@@ -23,9 +25,11 @@ int main(int argc, char **argv) {
     if (arg.compare("-o") == 0) {
       filename = argv[++i];
       isFilenameSet = true;
-    }
-    if (arg.compare("-r") == 0) {
+    } else if (arg.compare("-r") == 0) {
       resolution = atoi(argv[++i]);
+    } else if (arg.compare("-aa") == 0) {
+      antialias = atoi(argv[++i]);
+      printf("Anti-alias set to %d; casting %d rays per pixel.\n", antialias, antialias*antialias);
     }
   }
 
@@ -34,7 +38,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Scene scene(resolution);
+  Scene scene(resolution, antialias);
 
   // Read scene description from stdin.
   for (std::string line; std::getline(std::cin, line);) {
