@@ -133,13 +133,19 @@ void Scene::render() {
   Vector3 unitY = imagePlaneY.normalized();
   Vector3 unitX = imagePlaneX.normalized();
 
-  printf("[RENDER] Writing %dx%d image.\n", width, height);
+  printf("[RENDER] Preparing %dx%d image.\n", width, height);
 
   // Initialize frame buffer.
   Color *frame = new Color[width*height];
 
   // Find rays from the pixel locations.
+  double start = profiler.now();
   for (int y = 0; y < height; y++) {
+    if (height > 20 && y % (height / 20) == 0) {
+      printf("[ %3.0f%% ] %.3f s\n",
+        static_cast<double>(y) / height * 100,
+        profiler.now() - start);
+    }
     for (int x = 0; x < width; x++) {
       // Determine world coordinates of pixel at (x, y) of image plane.
       Vector3 world = camera.bl
@@ -154,8 +160,11 @@ void Scene::render() {
       frame[y*width+x] = trace(cameraRay);
     }
   }
+  printf("[RENDER] Completed in %.3f seconds.\n", profiler.now() - start);
+
 
   // Save frame buffer to an image.
+  printf("[RENDER] Writing to \"%s\".\n", "output.png");
   pngwriter png(width, height, 0, "output.png");
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {

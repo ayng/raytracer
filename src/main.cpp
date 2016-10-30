@@ -8,13 +8,6 @@
 #include <pngwriter.h>
 #include "Scene.h"
 
-double timestamp()
-{
-  struct timeval tv;
-  gettimeofday (&tv, 0);
-  return tv.tv_sec + 1e-6*tv.tv_usec;
-}
-
 int main(int argc, char **argv) {
   Scene scene;
   // Read scene description from stdin.
@@ -22,9 +15,7 @@ int main(int argc, char **argv) {
     scene.parseLine(line);
   }
   // Time the render.
-  double start = timestamp();
   scene.render();
-  printf("Render time: %.3f seconds\n", timestamp() - start);
 
   pngwriter png(100, 100, 0, "test.png");
   for (int i = 0; i < 100; i++)

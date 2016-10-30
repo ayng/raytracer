@@ -12,10 +12,11 @@
 #include "Matrix.h"
 #include "Ray.h"
 #include "Material.h"
+#include "Profiler.h"
 
 class Scene {
  public:
-  const int kResolution = 300;
+  const int kResolution = 240;
   const int kBounceLimit = 1;
   const Color kBackgroundColor = Color(0, 0, 0);
 
@@ -28,6 +29,8 @@ class Scene {
   Matrix4 xfOut;
 
   Material material;
+
+  Profiler profiler;
 
   Scene();
 

@@ -13,6 +13,7 @@ add_library(rt
   Light.cpp
   Geometry.cpp
   Camera.cpp
+  Profiler.cpp
 )
 
 add_executable(raytracer main.cpp)
