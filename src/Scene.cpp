@@ -1,5 +1,4 @@
 /** Copyright 2016 Alex Yang */
-#include <pngwriter.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -10,13 +9,25 @@
 #include <cstdio>
 
 #include "Scene.h"
+#include <pngwriter.h>
 
-Scene::Scene(int res, const std::string& fname) : filename(fname) {
+Scene::Scene(int res) {
   resolution = res;
   xfIn = scale(1, 1, 1);
   xfOut = scale(1, 1, 1);
   material =
     {Color(.5, .5, .5), Color(0, 0, 0), Color(0, 0, 0), 1, Color(0, 0, 0)};
+}
+
+int Scene::getWidth() {
+  Vector3 imagePlaneX = camera.br - camera.bl;
+  double imagePlaneW = imagePlaneX.magnitude();
+  return static_cast<int>(resolution * imagePlaneW);
+}
+int Scene::getHeight() {
+  Vector3 imagePlaneY = camera.tl - camera.bl;
+  double imagePlaneH = imagePlaneY.magnitude();
+  return static_cast<int>(resolution * imagePlaneH);
 }
 
 void Scene::parseLine(std::string line) {
@@ -123,7 +134,7 @@ void Scene::parseObj(std::string filename) {
          filename.c_str(), numVertices, numFaces);
 }
 
-void Scene::render() {
+std::vector<Color> Scene::render() {
   // Determine pixel location from the image plane.
   Vector3 imagePlaneY = camera.tl - camera.bl;
   Vector3 imagePlaneX = camera.br - camera.bl;
@@ -137,7 +148,7 @@ void Scene::render() {
   printf("[RENDER] Preparing %dx%d image.\n", width, height);
 
   // Initialize frame buffer.
-  Color *frame = new Color[width*height];
+  std::vector<Color> frame(width*height);
 
   // Find rays from the pixel locations.
   double start = profiler.now();
@@ -163,19 +174,7 @@ void Scene::render() {
   }
   printf("[RENDER] Completed in %.3f seconds.\n", profiler.now() - start);
 
-
-  // Save frame buffer to an image.
-  printf("[RENDER] Writing to \"%s\".\n", filename.c_str());
-  pngwriter png(width, height, 0, filename.c_str());
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      Color c = frame[y*width+x];
-      png.plot(x+1, y+1, c.r, c.g, c.b);
-    }
-  }
-  png.close();
-
-  delete [] frame;
+  return frame;
 }
 
 Color Scene::trace(const Ray& ray) {

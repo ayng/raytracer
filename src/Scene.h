@@ -33,11 +33,14 @@ class Scene {
 
   Profiler profiler;
 
-  Scene(int res, const std::string& filename);
+  Scene(int res);
+
+  int getWidth();
+  int getHeight();
 
   void parseLine(std::string line);
   void parseObj(std::string filename);
-  void render();
+  std::vector<Color> render();
   Color trace(const Ray& ray);
   Color trace(const Ray& ray, int bouncesLeft);
   Ray intersect(Ray ray, Sphere s);
