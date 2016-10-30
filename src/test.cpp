@@ -10,6 +10,11 @@
 
 int main() {
   {
+    Vector3 i (1, 1, 0);
+    Vector3 j (0, 1, 0);
+    i.cross(j).dump();
+  }
+  {
     Material mat = {Color(1,1,1), Color(1,1,1), Color(1,1,1), 10, Color(1,1,1)};
     Triangle tri(Vector3(0,0,0), Vector3(0,1,0), Vector3(1,0,0), mat, scale(1,1,1), scale(1,1,1));
     tri.a.dump();
