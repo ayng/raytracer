@@ -21,6 +21,19 @@ task :run do
     sh cmd
   end
 end
+
+task :bunny do
+  sh "build/raytracer -o bunny.png -r 400 -aa 3 < scenes/bunny.txt"
+end
+
+task :shadow do
+  sh "build/raytracer -o shadow.png -r 400 -aa 3 < scenes/moon.txt"
+end
+
+task :phong do
+  sh "build/raytracer -o phong.png -r 400 -aa 3 < scenes/phong.txt"
+end
+
 task :test do
   sh "build/rt_test"
 end
