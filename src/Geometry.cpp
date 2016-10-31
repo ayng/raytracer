@@ -24,9 +24,9 @@ Ray Triangle::intersect(const Ray& ray) {
   Vector3 pa = p - a;
   Vector3 pb = p - b;
   Vector3 pc = p - c;
-  if (pa.dot(b - a) > 0 && (b - a).cross(pa).dot(normal) > 0 &&
-      pb.dot(c - b) > 0 && (c - b).cross(pb).dot(normal) > 0 &&
-      pc.dot(a - c) > 0 && (a - c).cross(pc).dot(normal) > 0) {
+  if ((b - a).cross(pa).dot(normal) > 0 &&
+      (c - b).cross(pb).dot(normal) > 0 &&
+      (a - c).cross(pc).dot(normal) > 0) {
     Vector3 worldPoint =
       objectToWorld.dot(Vector4(p, 1)).toVector3();
     Vector3 worldNormal =

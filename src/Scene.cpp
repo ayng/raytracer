@@ -39,7 +39,7 @@ void Scene::parseLine(std::string line) {
   iss >> prefix;
 
   if (prefix[0] == '#') return;
-  
+
   if (prefix == "cam") {
     Vector3 pts[5];
     for (int i = 0; i < 5; i++)
